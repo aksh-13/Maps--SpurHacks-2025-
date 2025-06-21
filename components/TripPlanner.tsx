@@ -211,7 +211,14 @@ export default function TripPlanner({ onPlanningStart }: { onPlanningStart: () =
             <div className="min-h-[600px]">
               {activeTab === 'map' && <TripMap tripPlan={tripPlan} />}
               {activeTab === 'itinerary' && <ItineraryView tripPlan={tripPlan} />}
-              {activeTab === 'accommodations' && <AccommodationList accommodations={tripPlan.accommodations} />}
+              {activeTab === 'accommodations' && (
+                <AccommodationList 
+                  location={tripPlan.destination}
+                  checkIn="2024-01-15"
+                  checkOut="2024-01-22"
+                  guests={2}
+                />
+              )}
             </div>
           </div>
         </motion.div>
