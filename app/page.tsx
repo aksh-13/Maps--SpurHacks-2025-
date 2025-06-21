@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import TripPlanner from '@/components/TripPlanner'
+import ServicesIntegration from '@/components/ServicesIntegration'
 import Header from '@/components/Header'
 import { motion } from 'framer-motion'
 
 export default function Home() {
   const [isPlanning, setIsPlanning] = useState(false)
+  const [showServices, setShowServices] = useState(false)
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -28,7 +30,42 @@ export default function Home() {
           </p>
         </motion.div>
 
-        <TripPlanner onPlanningStart={() => setIsPlanning(true)} />
+        {!showServices ? (
+          <div className="space-y-8">
+            <TripPlanner onPlanningStart={() => setIsPlanning(true)} />
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-center"
+            >
+              <button
+                onClick={() => setShowServices(true)}
+                className="px-8 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all shadow-lg"
+              >
+                View Connected Services
+              </button>
+            </motion.div>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center"
+            >
+              <button
+                onClick={() => setShowServices(false)}
+                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all mb-6"
+              >
+                ← Back to Trip Planner
+              </button>
+            </motion.div>
+            
+            <ServicesIntegration />
+          </div>
+        )}
       </div>
     </main>
   )
