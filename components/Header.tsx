@@ -29,10 +29,6 @@ export default function Header({ onNavigateToMyTrips }: HeaderProps) {
               <Home className="h-4 w-4" />
               <span>Home</span>
             </a>
-            <a href="#" className="flex items-center space-x-2 text-primary-600 hover:text-accent-600 transition-colors font-medium">
-              <MapPin className="h-4 w-4" />
-              <span>Destinations</span>
-            </a>
             <button 
               onClick={onNavigateToMyTrips}
               className="flex items-center space-x-2 text-primary-600 hover:text-accent-600 transition-colors font-medium"

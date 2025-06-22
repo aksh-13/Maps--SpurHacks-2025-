@@ -297,7 +297,7 @@ class LocalAuthService {
           email: 'john@example.com',
           password: 'password123',
           name: 'John Doe',
-          picture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+          picture: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9Ijc1IiBjeT0iNjAiIHI9IjIwIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0yNSAxMjBDMjUgMTAwIDQ1IDg1IDc1IDg1QzEwNSA4NSAxMjUgMTAwIDEyNSAxMjBIMjVaIiBmaWxsPSIjOUI5QkEwIi8+Cjwvc3ZnPgo=',
           preferences: {
             preferredCurrency: 'USD',
             preferredLanguage: 'en',
