@@ -76,7 +76,6 @@ export class GeminiService {
       topK: 1,
       topP: 1,
       maxOutputTokens: 8192,
-      responseMimeType: "application/json",
     };
 
     const safetySettings = [
