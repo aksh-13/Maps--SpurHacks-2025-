@@ -23,6 +23,75 @@ interface NormalizedLocation {
   name: string;
   lat: number;
   lng: number;
+    destination: string
+    itinerary: {
+      day: number
+      title: string
+      theme?: string
+      morning?: {
+        time: string
+        activity: string
+        location: { name: string; lat: number; lng: number; address?: string }
+        duration: string
+        cost: string
+        tips: string
+        bookingUrl?: string
+        bookingPlatform?: string
+      }
+      afternoon?: {
+        time: string
+        activity: string
+        location: { name: string; lat: number; lng: number; address?: string }
+        duration: string
+        cost: string
+        tips: string
+        bookingUrl?: string
+        bookingPlatform?: string
+      }
+      evening?: {
+        time: string
+        activity: string
+        location: { name: string; lat: number; lng: number; address?: string }
+        duration: string
+        cost: string
+        tips: string
+        bookingUrl?: string
+        bookingPlatform?: string
+      }
+      transportation?: Array<{
+        from: string
+        to: string
+        method: string
+        duration: string
+        cost: string
+        details: string
+        bookingUrl?: string
+      }>
+      dining?: Array<{
+        meal: string
+        restaurant: string
+        cuisine: string
+        priceRange: string
+        specialty: string
+        location: { name: string; lat: number; lng: number; address?: string }
+        bookingUrl?: string
+        bookingPlatform?: string
+      }>
+      highlights?: string[]
+      totalCost?: string
+    }[]
+    accommodations?: any[]
+    accommodationSuggestions?: {
+      name: string;
+      type: string;
+      priceRange: string;
+      location?: string;
+      amenities?: string[];
+      pros?: string[];
+      cons?: string[];
+      bookingUrl: string;
+    }[];
+  }
 }
 
 const getDistance = (loc1: NormalizedLocation, loc2: NormalizedLocation) => {
@@ -301,6 +370,15 @@ export default function TripMap({ tripPlan }: TripMapProps) {
       console.warn('Map or location not ready for animation');
       return;
     }
+
+    // Add markers for all locations
+    const itineraryLocations = tripPlan.itinerary.flatMap(day => {
+      const locations = []
+      if (day.morning) locations.push(day.morning.location)
+      if (day.afternoon) locations.push(day.afternoon.location)
+      if (day.evening) locations.push(day.evening.location)
+      return locations
+    })
     
     if (currentIndex !== index && optimizedLocations[currentIndex]) {
       const startPoint = optimizedLocations[currentIndex];
@@ -485,15 +563,41 @@ export default function TripMap({ tripPlan }: TripMapProps) {
 
   if (!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) {
     return (
-      <div className="p-6 text-center text-gray-800">
-        <MapPin className="h-12 w-12 mx-auto text-blue-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Map Not Available</h2>
-        <p className="mb-4">Please add a Mapbox access token to .env.local as NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN.</p>
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h3 className="font-semibold mb-2">Trip Overview</h3>
-          <ul className="list-disc pl-5">
-            {allLocations.map((loc, i) => (
-              <li key={i}>{loc.name}</li>
+      <div className="bg-gray-100 rounded-lg p-8 text-center">
+        <div className="flex items-center justify-center mb-4">
+          <MapPin className="h-12 w-12 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">Interactive 3D Map</h3>
+        <p className="text-gray-600 mb-4">
+          To enable the interactive 3D map, please add your Mapbox access token to the environment variables.
+        </p>
+        <div className="bg-white rounded-lg p-4 shadow-sm">
+          <h4 className="font-medium text-gray-800 mb-2">Trip Locations:</h4>
+          <div className="space-y-2 text-sm text-gray-600">
+            {tripPlan.itinerary.map((day, dayIndex) => (
+              <div key={dayIndex}>
+                <p className="font-medium">Day {day.day}:</p>
+                <ul className="ml-4 space-y-1">
+                  {day.morning && (
+                    <li className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      {day.morning.location.name}
+                    </li>
+                  )}
+                  {day.afternoon && (
+                    <li className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      {day.afternoon.location.name}
+                    </li>
+                  )}
+                  {day.evening && (
+                    <li className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      {day.evening.location.name}
+                    </li>
+                  )}
+                </ul>
+              </div>
             ))}
           </ul>
         </div>

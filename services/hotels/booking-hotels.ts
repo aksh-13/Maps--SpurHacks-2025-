@@ -1,6 +1,8 @@
 // Google Places Hotels Service
 // Uses Google Places API to find real hotels in any location
 
+import { MockHotelsService } from './mock-hotels'
+
 export interface HotelSearch {
   location: string
   checkInDate: string
@@ -30,20 +32,29 @@ export interface HotelResult {
 export class GooglePlacesHotelsService {
   private apiKey: string
   private baseUrl = 'https://maps.googleapis.com/maps/api'
+  private mockService: MockHotelsService
 
   constructor() {
-    this.apiKey = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg'
+    this.apiKey = process.env.GOOGLE_PLACES_API_KEY || ''
+    this.mockService = new MockHotelsService()
   }
 
   async searchHotels(searchParams: HotelSearch): Promise<HotelResult[]> {
     try {
       console.log('Searching hotels for:', searchParams.location)
       
+      // If no API key, use mock data
+      if (!this.apiKey) {
+        console.log('No Google Places API key found, using mock data')
+        return this.mockService.searchHotels(searchParams)
+      }
+      
       // First, get coordinates for the location
       const coordinates = await this.getCoordinates(searchParams.location)
       if (!coordinates) {
         console.error('Could not get coordinates for location:', searchParams.location)
-        return []
+        console.log('Falling back to mock data')
+        return this.mockService.searchHotels(searchParams)
       }
 
       // Search for hotels using Google Places API
@@ -51,13 +62,19 @@ export class GooglePlacesHotelsService {
       
       if (hotels.length === 0) {
         console.log('No hotels found, trying text search')
-        return await this.searchHotelsByText(searchParams)
+        const textSearchHotels = await this.searchHotelsByText(searchParams)
+        if (textSearchHotels.length === 0) {
+          console.log('No hotels found in text search, using mock data')
+          return this.mockService.searchHotels(searchParams)
+        }
+        return textSearchHotels
       }
       
       return hotels
     } catch (error) {
       console.error('Error searching hotels:', error)
-      return []
+      console.log('Falling back to mock data due to error')
+      return this.mockService.searchHotels(searchParams)
     }
   }
 
