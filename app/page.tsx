@@ -3,21 +3,17 @@
 import { useState } from 'react'
 import TripPlanner from '@/components/TripPlanner'
 import ServicesIntegration from '@/components/ServicesIntegration'
-import PaymentExample from '@/components/PaymentExample'
 import MyTrips from '@/components/MyTrips'
 import Header from '@/components/Header'
-import Chatbot from '@/components/Chatbot'
 import { motion } from 'framer-motion'
 
 export default function Home() {
   const [isPlanning, setIsPlanning] = useState(false)
   const [showServices, setShowServices] = useState(false)
-  const [showPayments, setShowPayments] = useState(false)
   const [showMyTrips, setShowMyTrips] = useState(false)
 
   const resetView = () => {
     setShowServices(false)
-    setShowPayments(false)
     setShowMyTrips(false)
   }
 
@@ -41,7 +37,7 @@ export default function Home() {
           </p>
         </motion.div>
 
-        {!showServices && !showPayments && !showMyTrips ? (
+        {!showServices && !showMyTrips ? (
           <div className="space-y-12">
             <TripPlanner onPlanningStart={() => setIsPlanning(true)} />
             
@@ -64,12 +60,6 @@ export default function Home() {
                 >
                   View Connected Services
                 </button>
-                <button
-                  onClick={() => setShowPayments(true)}
-                  className="btn-secondary"
-                >
-                  View Payment Options
-                </button>
               </div>
             </motion.div>
           </div>
@@ -90,7 +80,7 @@ export default function Home() {
             
             <MyTrips />
           </div>
-        ) : showServices ? (
+        ) : (
           <div className="space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -107,28 +97,8 @@ export default function Home() {
             
             <ServicesIntegration />
           </div>
-        ) : (
-          <div className="space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center"
-            >
-              <button
-                onClick={resetView}
-                className="btn-secondary mb-8"
-              >
-                ← Back to Trip Planner
-              </button>
-            </motion.div>
-            
-            <PaymentExample />
-          </div>
         )}
       </div>
-
-      {/* AI Travel Assistant Chatbot */}
-      <Chatbot />
     </main>
   )
 } 

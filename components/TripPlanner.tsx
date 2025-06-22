@@ -77,6 +77,7 @@ interface TripPlan {
     highlights?: string[]
     totalCost?: string
   }[]
+  accommodations: { name: string; location: { lat: number; lng: number } }[]
   accommodationSuggestions?: {
     name: string
     type: string

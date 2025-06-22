@@ -14,73 +14,63 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 interface TripMapProps {
   tripPlan: {
     destination: string;
-    itinerary: { day: number; locations: { name: string; lat: number; lng: number }[] }[];
-    accommodations: { name: string; location: { lat: number; lng: number } }[];
-  };
-}
-
-interface NormalizedLocation {
-  name: string;
-  lat: number;
-  lng: number;
-    destination: string
     itinerary: {
-      day: number
-      title: string
-      theme?: string
+      day: number;
+      title?: string;
+      theme?: string;
       morning?: {
-        time: string
-        activity: string
-        location: { name: string; lat: number; lng: number; address?: string }
-        duration: string
-        cost: string
-        tips: string
-        bookingUrl?: string
-        bookingPlatform?: string
-      }
+        time: string;
+        activity: string;
+        location: { name: string; lat: number; lng: number; address?: string };
+        duration: string;
+        cost: string;
+        tips: string;
+        bookingUrl?: string;
+        bookingPlatform?: string;
+      };
       afternoon?: {
-        time: string
-        activity: string
-        location: { name: string; lat: number; lng: number; address?: string }
-        duration: string
-        cost: string
-        tips: string
-        bookingUrl?: string
-        bookingPlatform?: string
-      }
+        time: string;
+        activity: string;
+        location: { name: string; lat: number; lng: number; address?: string };
+        duration: string;
+        cost: string;
+        tips: string;
+        bookingUrl?: string;
+        bookingPlatform?: string;
+      };
       evening?: {
-        time: string
-        activity: string
-        location: { name: string; lat: number; lng: number; address?: string }
-        duration: string
-        cost: string
-        tips: string
-        bookingUrl?: string
-        bookingPlatform?: string
-      }
+        time: string;
+        activity: string;
+        location: { name: string; lat: number; lng: number; address?: string };
+        duration: string;
+        cost: string;
+        tips: string;
+        bookingUrl?: string;
+        bookingPlatform?: string;
+      };
       transportation?: Array<{
-        from: string
-        to: string
-        method: string
-        duration: string
-        cost: string
-        details: string
-        bookingUrl?: string
-      }>
+        from: string;
+        to: string;
+        method: string;
+        duration: string;
+        cost: string;
+        details: string;
+        bookingUrl?: string;
+      }>;
       dining?: Array<{
-        meal: string
-        restaurant: string
-        cuisine: string
-        priceRange: string
-        specialty: string
-        location: { name: string; lat: number; lng: number; address?: string }
-        bookingUrl?: string
-        bookingPlatform?: string
-      }>
-      highlights?: string[]
-      totalCost?: string
-    }[]
-    accommodations?: any[]
+        meal: string;
+        restaurant: string;
+        cuisine: string;
+        priceRange: string;
+        specialty: string;
+        location: { name: string; lat: number; lng: number; address?: string };
+        bookingUrl?: string;
+        bookingPlatform?: string;
+      }>;
+      highlights?: string[];
+      totalCost?: string;
+    }[];
+    accommodations: { name: string; location: { lat: number; lng: number } }[];
     accommodationSuggestions?: {
       name: string;
       type: string;
@@ -91,7 +81,13 @@ interface NormalizedLocation {
       cons?: string[];
       bookingUrl: string;
     }[];
-  }
+  };
+}
+
+interface NormalizedLocation {
+  name: string;
+  lat: number;
+  lng: number;
 }
 
 const getDistance = (loc1: NormalizedLocation, loc2: NormalizedLocation) => {
@@ -119,8 +115,8 @@ export default function TripMap({ tripPlan }: TripMapProps) {
   const animationFrameId = useRef<number>();
   const [segment, setSegment] = useState<{start: [number, number], end: [number, number]} | null>(null);
   const [viewState, setViewState] = useState({
-    longitude: 2.3522,
-    latitude: 48.8566,
+    longitude: 0,
+    latitude: 0,
     zoom: 10,
     pitch: 60,
     bearing: 0,
@@ -128,10 +124,87 @@ export default function TripMap({ tripPlan }: TripMapProps) {
     transitionInterpolator: new FlyToInterpolator(),
   });
 
+  // Get destination coordinates based on trip destination
+  const getDestinationCoordinates = useCallback(async (destination: string) => {
+    // Default coordinates (fallback)
+    const defaultCoords = { lat: 40.7128, lng: -74.0060 }; // NYC as fallback
+    
+    if (!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) {
+      console.warn('Mapbox access token not available for geocoding');
+      return defaultCoords;
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(destination)}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}&limit=1`
+      );
+      
+      if (!response.ok) {
+        console.warn('Geocoding request failed:', response.status);
+        return defaultCoords;
+      }
+
+      const data = await response.json();
+      
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].center;
+        console.log(`Geocoded "${destination}" to: ${lat}, ${lng}`);
+        return { lat, lng };
+      } else {
+        console.warn(`No coordinates found for destination: ${destination}`);
+        return defaultCoords;
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return defaultCoords;
+    }
+  }, []);
+
+  // Update viewState when tripPlan changes
+  useEffect(() => {
+    const updateViewState = async () => {
+      console.log('Updating viewState for destination:', tripPlan.destination);
+      const coords = await getDestinationCoordinates(tripPlan.destination);
+      console.log('Setting map center to:', coords);
+      setViewState(prev => ({
+        ...prev,
+        longitude: coords.lng,
+        latitude: coords.lat,
+      }));
+    };
+    
+    updateViewState();
+  }, [tripPlan.destination, getDestinationCoordinates]);
+
   // Memoize location processing to avoid re-calculating on every render
   const allLocations = useMemo(() => {
-    const itineraryLocations = tripPlan.itinerary.flatMap((day) => day.locations);
-    const accommodationLocations = tripPlan.accommodations.map(acc => ({
+    const itineraryLocations = tripPlan.itinerary.flatMap((day) => {
+      const locations: NormalizedLocation[] = [];
+      if (day.morning?.location) {
+        locations.push({
+          name: day.morning.location.name,
+          lat: day.morning.location.lat,
+          lng: day.morning.location.lng
+        });
+      }
+      if (day.afternoon?.location) {
+        locations.push({
+          name: day.afternoon.location.name,
+          lat: day.afternoon.location.lat,
+          lng: day.afternoon.location.lng
+        });
+      }
+      if (day.evening?.location) {
+        locations.push({
+          name: day.evening.location.name,
+          lat: day.evening.location.lat,
+          lng: day.evening.location.lng
+        });
+      }
+      return locations;
+    });
+    
+    const accommodationLocations = (tripPlan.accommodations || []).map(acc => ({
       name: acc.name,
       lat: acc.location.lat,
       lng: acc.location.lng
@@ -170,49 +243,49 @@ export default function TripMap({ tripPlan }: TripMapProps) {
   }))), [allLocations]);
 
   // Add Mapbox markers
-  const addMarkers = useCallback(() => {
+  const addMarkers = useCallback(async () => {
     if (!mapRef.current) {
       console.warn('Map not ready for markers');
       return;
     }
 
-    const mapboxgl = (window as any).mapboxgl;
-    if (!mapboxgl) {
-      console.error('Mapboxgl is not available');
-      return;
+    try {
+      const mapboxgl = await import('mapbox-gl');
+      
+      // Clear existing markers before adding new ones
+      const existingMarkers = document.querySelectorAll('.marker');
+      existingMarkers.forEach(marker => marker.remove());
+
+      allLocations.forEach((loc) => {
+        const el = document.createElement('div');
+        el.className = 'marker';
+        el.style.cssText = `
+          width: 0; height: 0; border-left: 8px solid transparent;
+          border-right: 8px solid transparent; border-bottom: 16px solid ${loc.name.includes('Hotel') ? '#3b82f6' : '#10b981'};
+          position: relative; cursor: pointer; transition: transform 0.2s ease;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        `;
+
+        const dot = document.createElement('div');
+        dot.style.cssText = `
+          position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%);
+          width: 4px; height: 4px; background-color: ${loc.name.includes('Hotel') ? '#3b82f6' : '#10b981'};
+          border-radius: 50%; border: 2px solid white;
+        `;
+        el.appendChild(dot);
+
+        el.addEventListener('mouseenter', () => (el.style.transform = 'scale(1.2) translateY(-2px)'));
+        el.addEventListener('mouseleave', () => (el.style.transform = 'scale(1)'));
+
+        new mapboxgl.Marker(el)
+          .setLngLat([loc.lng, loc.lat])
+          .setPopup(new mapboxgl.Popup().setText(loc.name))
+          .addTo(mapRef.current!);
+      });
+      console.log('Markers added');
+    } catch (error) {
+      console.error('Failed to add markers:', error);
     }
-
-    // Clear existing markers before adding new ones
-    const existingMarkers = document.querySelectorAll('.marker');
-    existingMarkers.forEach(marker => marker.remove());
-
-    allLocations.forEach((loc) => {
-      const el = document.createElement('div');
-      el.className = 'marker';
-      el.style.cssText = `
-        width: 0; height: 0; border-left: 8px solid transparent;
-        border-right: 8px solid transparent; border-bottom: 16px solid ${loc.name.includes('Hotel') ? '#3b82f6' : '#10b981'};
-        position: relative; cursor: pointer; transition: transform 0.2s ease;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-      `;
-
-      const dot = document.createElement('div');
-      dot.style.cssText = `
-        position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%);
-        width: 4px; height: 4px; background-color: ${loc.name.includes('Hotel') ? '#3b82f6' : '#10b981'};
-        border-radius: 50%; border: 2px solid white;
-      `;
-      el.appendChild(dot);
-
-      el.addEventListener('mouseenter', () => (el.style.transform = 'scale(1.2) translateY(-2px)'));
-      el.addEventListener('mouseleave', () => (el.style.transform = 'scale(1)'));
-
-      new mapboxgl.Marker(el)
-        .setLngLat([loc.lng, loc.lat])
-        .setPopup(new mapboxgl.Popup().setText(loc.name))
-        .addTo(mapRef.current!);
-    });
-    console.log('Markers added');
   }, [allLocations]);
 
   // Initialize Three.js
@@ -231,21 +304,20 @@ export default function TripMap({ tripPlan }: TripMapProps) {
     renderer.setSize(window.innerWidth, 600);
     mapContainerRef.current.appendChild(renderer.domElement);
 
-    const loader = new GLTFLoader();
-    loader.load(
-      'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumAir/glTF/CesiumAir.gltf',
-      (gltf: any) => {
-        const plane = gltf.scene.children[0] as THREE.Mesh;
-        planeRef.current = plane;
-        plane.scale.set(0.05, 0.05, 0.05);
-        plane.rotation.x = Math.PI / 2;
-        scene.add(plane);
-        console.log('Plane loaded');
-        animateRenderer();
-      },
-      undefined,
-      (error: any) => console.error('GLTF load error:', error)
-    );
+    // Create a simple plane geometry instead of loading external model
+    const geometry = new THREE.PlaneGeometry(1, 1);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: 0x3b82f6, 
+      transparent: true, 
+      opacity: 0.8,
+      side: THREE.DoubleSide 
+    });
+    const plane = new THREE.Mesh(geometry, material);
+    planeRef.current = plane;
+    plane.scale.set(20, 20, 1);
+    plane.rotation.x = Math.PI / 2;
+    scene.add(plane);
+    console.log('Plane created');
 
     const animateRenderer = () => {
       if (rendererRef.current && cameraRef.current && sceneRef.current && mapRef.current) {
@@ -277,10 +349,14 @@ export default function TripMap({ tripPlan }: TripMapProps) {
           return;
         }
 
+        // Get destination coordinates first
+        const coords = await getDestinationCoordinates(tripPlan.destination);
+        console.log('Initializing map with coordinates:', coords);
+
         const map = new mapboxgl.Map({
           container: mapContainerRef.current!,
           style: 'mapbox://styles/mapbox/dark-v11',
-          center: [viewState.longitude, viewState.latitude],
+          center: [coords.lng, coords.lat],
           zoom: viewState.zoom,
           pitch: viewState.pitch,
           bearing: viewState.bearing,
@@ -292,7 +368,6 @@ export default function TripMap({ tripPlan }: TripMapProps) {
         map.on('load', () => {
           console.log('Map loaded successfully');
           setMapLoaded(true); // This will trigger other effects like adding markers
-          map.setPaintProperty('background', 'background-color', '#1a2a44');
 
           try {
             map.addLayer({
@@ -317,7 +392,14 @@ export default function TripMap({ tripPlan }: TripMapProps) {
           initializeThreeJS();
         });
 
-        map.on('error', (e) => console.error('Mapbox error:', e));
+        map.on('error', (e) => {
+          console.error('Mapbox error:', e);
+          console.error('Error details:', {
+            type: e.type,
+            error: e.error,
+            target: e.target
+          });
+        });
       } catch (error) {
         console.error('Map initialization failed:', error);
       }
@@ -335,30 +417,35 @@ export default function TripMap({ tripPlan }: TripMapProps) {
         rendererRef.current.dispose();
       }
     };
-  }, [initializeThreeJS]);
+  }, [initializeThreeJS, tripPlan.destination, getDestinationCoordinates]);
 
   // 2. Add/update markers when locations change
   useEffect(() => {
     if (mapLoaded) {
-      addMarkers();
+      addMarkers().catch(error => {
+        console.error('Failed to add markers:', error);
+      });
     }
   }, [mapLoaded, allLocations, addMarkers]);
 
   // 3. Fit map to bounds on first load or when locations change
   useEffect(() => {
     if (mapLoaded && allLocations.length > 0) {
-      const mapboxgl = (window as any).mapboxgl;
-      if (!mapboxgl) {
-        console.warn('Mapboxgl is not available');
-        return;
-      }
-      const bounds = new mapboxgl.LngLatBounds();
-      allLocations.forEach((loc) => bounds.extend([loc.lng, loc.lat]));
-      mapRef.current!.fitBounds(bounds, { padding: 50, duration: 2000 });
-      console.log('Map fitted to bounds');
+      const fitMapToBounds = async () => {
+        try {
+          const mapboxgl = await import('mapbox-gl');
+          const bounds = new mapboxgl.LngLatBounds();
+          allLocations.forEach((loc) => bounds.extend([loc.lng, loc.lat]));
+          mapRef.current!.fitBounds(bounds, { padding: 50, duration: 2000 });
+          console.log('Map fitted to bounds');
+        } catch (error) {
+          console.error('Failed to fit map to bounds:', error);
+        }
+      };
+      
+      fitMapToBounds();
     }
   }, [mapLoaded, allLocations]);
-
 
   // Animate to location
   const animateToLocation = useCallback((index: number) => {
@@ -371,15 +458,6 @@ export default function TripMap({ tripPlan }: TripMapProps) {
       return;
     }
 
-    // Add markers for all locations
-    const itineraryLocations = tripPlan.itinerary.flatMap(day => {
-      const locations = []
-      if (day.morning) locations.push(day.morning.location)
-      if (day.afternoon) locations.push(day.afternoon.location)
-      if (day.evening) locations.push(day.evening.location)
-      return locations
-    })
-    
     if (currentIndex !== index && optimizedLocations[currentIndex]) {
       const startPoint = optimizedLocations[currentIndex];
       const endPoint = optimizedLocations[index];
@@ -507,16 +585,16 @@ export default function TripMap({ tripPlan }: TripMapProps) {
       pickable: true,
       widthScale: 1,
       widthMinPixels: 3,
-      getPath: (d) => d.path,
-      getColor: (d) => d.color,
-      getWidth: (d) => d.width,
+      getPath: (d: any) => d.path,
+      getColor: (d: any) => d.color,
+      getWidth: (d: any) => d.width,
     }),
     new ScatterplotLayer({
       id: 'location-markers',
       data: locationData,
-      getPosition: (d) => d.position,
+      getPosition: (d: any) => d.position,
       getRadius: 8,
-      getFillColor: (d) => (d.name.includes('Hotel') ? [59, 130, 246, 200] : [16, 185, 129, 200]),
+      getFillColor: (d: any) => (d.name.includes('Hotel') ? [59, 130, 246, 200] : [16, 185, 129, 200]),
       getLineColor: [255, 255, 255, 255],
       getLineWidth: 2,
       pickable: true,
@@ -531,14 +609,14 @@ export default function TripMap({ tripPlan }: TripMapProps) {
       },
       getIcon: () => 'arrow',
       sizeScale: 15,
-      getPosition: d => {
+      getPosition: (d: any) => {
           const [x1, y1] = d.start;
           const [x2, y2] = d.end;
           const x = x1 + (x2 - x1) * segmentProgress;
           const y = y1 + (y2 - y1) * segmentProgress;
           return [x, y, 10]; // position with slight altitude
       },
-      getAngle: d => {
+      getAngle: (d: any) => {
           const [x1, y1] = d.start;
           const [x2, y2] = d.end;
           return 90 - Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
@@ -559,7 +637,6 @@ export default function TripMap({ tripPlan }: TripMapProps) {
       });
     }
   }, []);
-
 
   if (!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) {
     return (
@@ -599,7 +676,18 @@ export default function TripMap({ tripPlan }: TripMapProps) {
                 </ul>
               </div>
             ))}
-          </ul>
+            <div className="mt-4">
+              <p className="font-medium">Accommodations:</p>
+              <ul className="ml-4 space-y-1">
+                {(tripPlan.accommodations || []).map((acc, index) => (
+                  <li key={index} className="flex items-center">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                    {acc.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     );

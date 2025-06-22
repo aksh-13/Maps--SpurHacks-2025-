@@ -63,8 +63,13 @@ export class GeminiService {
   async generateTripPlan(prompt: string): Promise<any> {
     if (!this.genAI) {
       console.warn('Gemini model not available. Returning mock trip plan.')
-      return this.getMockTripPlan(prompt)
+      return await this.getMockTripPlan(prompt)
     }
+
+    // First, autocorrect the user's input using AI
+    const correctedPrompt = await this.autocorrectUserInput(prompt)
+    console.log('Original prompt:', prompt)
+    console.log('Corrected prompt:', correctedPrompt)
 
     const generationConfig = {
       temperature: 0.7,
@@ -95,9 +100,29 @@ export class GeminiService {
 
     const systemInstruction = `You are an expert travel planner for the TripPlanner 3D application. Create a comprehensive, detailed, and realistic trip plan based on the user's prompt.
 
-The user's prompt is: "${prompt}"
+The user's prompt is: "${correctedPrompt}"
 
-IMPORTANT: You MUST generate the FULL number of days specified in the user's request. If they ask for 3 days, generate exactly 3 days of itinerary. If they ask for 7 days, generate exactly 7 days. Do not skip any days.
+CRITICAL REQUIREMENTS - READ CAREFULLY:
+1. Generate the EXACT number of days specified in the user's request
+2. Each day MUST have morning, afternoon, and evening activities
+3. Do not skip any days - if user asks for 3 days, provide days 1, 2, and 3
+4. MOST IMPORTANT: Each day must explore COMPLETELY DIFFERENT areas, neighborhoods, and attractions
+5. Each activity must be UNIQUE and specific to that day - NO REPETITION across days
+6. Each day should have a different focus: cultural, historical, modern, nature, entertainment, etc.
+7. Use REAL, specific locations and attractions for the destination
+8. Each day should cover different parts of the city/region
+
+EXAMPLE OF GOOD DIVERSITY:
+- Day 1: Historic downtown area with museums and landmarks
+- Day 2: Modern business district with shopping and entertainment
+- Day 3: Nature areas and parks
+- Day 4: Cultural districts and local neighborhoods
+- Day 5: Waterfront and outdoor activities
+
+EXAMPLE OF BAD REPETITION (DO NOT DO THIS):
+- Day 1: City center, main square, downtown
+- Day 2: City center, main square, downtown (different activities but same area)
+- Day 3: City center, main square, downtown (same area again)
 
 Generate a detailed JSON response with the following structure:
 {
@@ -113,35 +138,35 @@ Generate a detailed JSON response with the following structure:
   "itinerary": [
     {
       "day": 1,
-      "title": "Day Title",
-      "theme": "Cultural/Adventure/Relaxation",
+      "title": "Day 1 - [SPECIFIC THEME] Experience",
+      "theme": "Cultural/Adventure/Relaxation/Historical/Modern/Nature/Artistic/Culinary/Entertainment/Educational",
       "morning": {
         "time": "09:00",
-        "activity": "Activity description",
-        "location": { "name": "Location Name", "lat": 48.8584, "lng": 2.2945, "address": "Full address" },
-        "duration": "2 hours",
+        "activity": "SPECIFIC activity name (e.g., 'Visit the Louvre Museum' not 'Museum Visit')",
+        "location": { "name": "SPECIFIC location name", "lat": 48.8584, "lng": 2.2945, "address": "Full address" },
+        "duration": "2-4 hours",
         "cost": "$15",
-        "tips": "Pro tip for this activity",
+        "tips": "Specific tip for this exact activity",
         "bookingUrl": "https://www.viator.com/activity-url",
         "bookingPlatform": "Viator/GetYourGuide/TripAdvisor"
       },
       "afternoon": {
         "time": "14:00",
-        "activity": "Activity description",
-        "location": { "name": "Location Name", "lat": 48.8606, "lng": 2.3376, "address": "Full address" },
-        "duration": "3 hours",
+        "activity": "DIFFERENT specific activity (e.g., 'Explore Montmartre District' not 'District Exploration')",
+        "location": { "name": "DIFFERENT specific location", "lat": 48.8606, "lng": 2.3376, "address": "Full address" },
+        "duration": "3-5 hours",
         "cost": "$25",
-        "tips": "Pro tip for this activity",
+        "tips": "Specific tip for this exact activity",
         "bookingUrl": "https://www.getyourguide.com/activity-url",
         "bookingPlatform": "Viator/GetYourGuide/TripAdvisor"
       },
       "evening": {
         "time": "19:00",
-        "activity": "Activity description",
-        "location": { "name": "Location Name", "lat": 48.8580, "lng": 2.3450, "address": "Full address" },
-        "duration": "2 hours",
+        "activity": "DIFFERENT specific activity (e.g., 'Dinner at Le Jules Verne Restaurant' not 'Fine Dining')",
+        "location": { "name": "DIFFERENT specific location", "lat": 48.8580, "lng": 2.3450, "address": "Full address" },
+        "duration": "2-4 hours",
         "cost": "$40",
-        "tips": "Pro tip for this activity",
+        "tips": "Specific tip for this exact activity",
         "bookingUrl": "https://www.tripadvisor.com/activity-url",
         "bookingPlatform": "Viator/GetYourGuide/TripAdvisor"
       },
@@ -149,26 +174,26 @@ Generate a detailed JSON response with the following structure:
         {
           "from": "Previous location",
           "to": "Next location",
-          "method": "Metro/Bus/Walk/Taxi",
-          "duration": "15 minutes",
+          "method": "Metro/Bus/Walk/Taxi/Bike",
+          "duration": "10-30 minutes",
           "cost": "$2.50",
-          "details": "Take Line 1 to Station X",
+          "details": "Specific transportation details",
           "bookingUrl": "https://transport-booking-url.com"
         }
       ],
       "dining": [
         {
-          "meal": "Lunch",
-          "restaurant": "Restaurant Name",
-          "cuisine": "Local/International",
+          "meal": "Lunch/Dinner",
+          "restaurant": "SPECIFIC restaurant name",
+          "cuisine": "Local/International/Fusion/Traditional/Modern",
           "priceRange": "$15-25",
-          "specialty": "Famous dish",
+          "specialty": "Specific famous dish",
           "location": { "name": "Restaurant Name", "lat": 48.8580, "lng": 2.3450, "address": "Full address" },
           "bookingUrl": "https://www.opentable.com/restaurant-url",
           "bookingPlatform": "OpenTable/Resy/Chope"
         }
       ],
-      "highlights": ["Highlight 1", "Highlight 2"],
+      "highlights": ["Specific highlight 1", "Specific highlight 2"],
       "totalCost": "$80"
     }
   ],
@@ -225,12 +250,22 @@ Generate a detailed JSON response with the following structure:
   }
 }
 
-CRITICAL REQUIREMENTS:
-1. Generate the EXACT number of days specified in the user's request
-2. Each day MUST have morning, afternoon, and evening activities
-3. Do not skip any days - if user asks for 3 days, provide days 1, 2, and 3
-4. Each day should have a unique theme and focus on different areas/attractions
-5. Ensure logical flow between days (don't repeat the same activities)
+DIVERSITY REQUIREMENTS:
+- Day 1: Focus on HISTORIC/CULTURAL areas (museums, landmarks, historic districts)
+- Day 2: Focus on MODERN/ENTERTAINMENT areas (shopping, modern attractions, entertainment)
+- Day 3: Focus on NATURE/OUTDOOR areas (parks, gardens, outdoor activities)
+- Day 4: Focus on LOCAL/NEIGHBORHOOD areas (local markets, residential areas, authentic experiences)
+- Day 5: Focus on WATERFRONT/SCENIC areas (rivers, harbors, scenic viewpoints)
+- Day 6: Focus on ARTISTIC/CREATIVE areas (art districts, galleries, creative spaces)
+- Day 7: Focus on EDUCATIONAL/SPECIALIZED areas (universities, specialized museums, unique experiences)
+
+ACTIVITY DIVERSITY RULES:
+- Use SPECIFIC attraction names (e.g., "Visit the Eiffel Tower" not "Visit a landmark")
+- Use SPECIFIC restaurant names (e.g., "Dine at Le Jules Verne" not "Fine dining experience")
+- Use SPECIFIC location names (e.g., "Explore Montmartre District" not "Explore a district")
+- Each day should cover different neighborhoods/districts of the city
+- Each activity should be unique to that specific day
+- Avoid generic terms like "exploration", "experience", "visit" - be specific
 
 Important guidelines:
 - Provide REALISTIC coordinates for each location (use actual landmarks)
@@ -273,270 +308,350 @@ Return ONLY the JSON object, no additional text or explanations.`;
       return tripPlan;
     } catch (error) {
       console.error('Error generating trip plan with Gemini:', error)
-      return this.getMockTripPlan(prompt)
+      return await this.getMockTripPlan(prompt)
     }
   }
 
-  private getMockTripPlan(prompt: string): any {
-    const destinations = ['Paris, France', 'Tokyo, Japan', 'Rome, Italy', 'New York, USA']
-    const randomDestination = destinations[Math.floor(Math.random() * destinations.length)]
+  private async getMockTripPlan(prompt: string): Promise<any> {
+    // First autocorrect the prompt if AI is available
+    const correctedPrompt = await this.autocorrectUserInput(prompt)
+    
+    // Parse the prompt to extract destination and duration
+    const promptLower = correctedPrompt.toLowerCase();
+    
+    // Extract destination from prompt
+    let destination = 'Paris, France'; // default
+    const destinationPatterns = [
+      { pattern: /(?:in|to|visit|travel to|go to)\s+([a-zA-Z\s,]+?)(?:\s+for|\s+with|\s+interested|\s+budget|$)/i, default: 'Paris, France' },
+      { pattern: /([a-zA-Z\s,]+?)(?:\s+for\s+\d+\s+days?|\s+with\s+my|\s+budget|\s+interested)/i, default: 'Paris, France' },
+      { pattern: /(\d+\s+days?\s+in\s+[a-zA-Z\s,]+)/i, default: 'Paris, France' }
+    ];
+    
+    for (const { pattern, default: defaultDest } of destinationPatterns) {
+      const match = promptLower.match(pattern);
+      if (match && match[1]) {
+        const extracted = match[1].trim();
+        if (extracted.length > 2 && !extracted.includes('days') && !extracted.includes('budget')) {
+          destination = extracted.charAt(0).toUpperCase() + extracted.slice(1);
+          break;
+        }
+      }
+    }
+    
+    // Extract duration from prompt
+    let duration = '5 days'; // default
+    const durationMatch = promptLower.match(/(\d+)\s+days?/);
+    if (durationMatch) {
+      duration = `${durationMatch[1]} days`;
+    }
+    
+    // Extract budget from prompt
+    let budget = '$2,000'; // default
+    const budgetMatch = promptLower.match(/\$?(\d+(?:,\d+)?(?:k|000)?)/i);
+    if (budgetMatch) {
+      const amount = budgetMatch[1].toLowerCase();
+      if (amount.includes('k')) {
+        budget = `$${amount.replace('k', '000')}`;
+      } else if (amount.includes('000')) {
+        budget = `$${amount}`;
+      } else {
+        budget = `$${amount}`;
+      }
+    }
+    
+    console.log(`Parsed prompt - Destination: ${destination}, Duration: ${duration}, Budget: ${budget}`);
+
+    // Get destination coordinates dynamically using geocoding
+    const destinationCoords = await this.getDestinationCoordinatesAsync(destination);
+    
+    // Generate itinerary based on duration
+    const numDays = parseInt(duration.match(/\d+/)?.[0] || '5');
+    const itinerary = this.generateItinerary(destination, numDays, destinationCoords);
 
     return {
-      destination: randomDestination,
-      duration: '5 days',
-      budget: '$2,000',
+      destination: destination,
+      duration: duration,
+      budget: budget,
       bestTimeToVisit: 'April - October',
       weather: 'Mild temperatures, occasional rain',
       timezone: 'UTC+1',
-      language: 'French',
-      currency: 'Euro (€)',
+      language: 'English',
+      currency: 'USD ($)',
       activities: ['Sightseeing', 'Local Cuisine', 'Museums', 'Shopping'],
-      itinerary: [
-        {
-          day: 1,
-          title: 'Arrival & City Center',
-          theme: 'Cultural',
-          morning: {
-            time: '09:00',
-            activity: 'Arrive and check into hotel',
-            location: { name: 'Hotel Check-in', lat: 48.8566, lng: 2.3522, address: 'City Center, Paris' },
-            duration: '1 hour',
-            cost: '$0',
-            tips: 'Store luggage if room not ready',
-            bookingUrl: 'https://www.booking.com/hotel/fr/paris-center.html',
-            bookingPlatform: 'Booking.com'
-          },
-          afternoon: {
-            time: '14:00',
-            activity: 'Explore the city center and Eiffel Tower',
-            location: { name: 'Eiffel Tower', lat: 48.8584, lng: 2.2945, address: 'Champ de Mars, 5 Avenue Anatole France, 75007 Paris' },
-            duration: '3 hours',
-            cost: '$26',
-            tips: 'Book tickets online to avoid queues',
-            bookingUrl: 'https://www.viator.com/Paris-attractions/Eiffel-Tower/d479-a220',
-            bookingPlatform: 'Viator'
-          },
-          evening: {
-            time: '19:00',
-            activity: 'Welcome dinner at local bistro',
-            location: { name: 'Le Petit Bistrot', lat: 48.8580, lng: 2.3450, address: 'Rue de la Paix, 75001 Paris' },
-            duration: '2 hours',
-            cost: '$45',
-            tips: 'Try the coq au vin',
-            bookingUrl: 'https://www.opentable.com/r/le-petit-bistrot-paris',
-            bookingPlatform: 'OpenTable'
-          },
-          transportation: [
-            {
-              from: 'Airport',
-              to: 'Hotel',
-              method: 'Metro',
-              duration: '45 minutes',
-              cost: '$12',
-              details: 'Take RER B to Châtelet-Les Halles',
-              bookingUrl: 'https://www.ratp.fr/en/titres-et-tarifs'
-            }
-          ],
-          dining: [
-            {
-              meal: 'Dinner',
-              restaurant: 'Le Petit Bistrot',
-              cuisine: 'French',
-              priceRange: '$35-55',
-              specialty: 'Coq au Vin',
-              location: { name: 'Le Petit Bistrot', lat: 48.8580, lng: 2.3450, address: 'Rue de la Paix, 75001 Paris' },
-              bookingUrl: 'https://www.opentable.com/r/le-petit-bistrot-paris',
-              bookingPlatform: 'OpenTable'
-            }
-          ],
-          highlights: ['Eiffel Tower views', 'Traditional French dinner'],
-          totalCost: '$83'
-        },
-        {
-          day: 2,
-          title: 'Art & Culture',
-          theme: 'Cultural',
-          morning: {
-            time: '09:00',
-            activity: 'Visit Louvre Museum',
-            location: { name: 'Louvre Museum', lat: 48.8606, lng: 2.3376, address: 'Rue de Rivoli, 75001 Paris' },
-            duration: '3 hours',
-            cost: '$17',
-            tips: 'Enter through the Pyramid entrance',
-            bookingUrl: 'https://www.viator.com/Paris-attractions/Louvre-Museum/d479-a220',
-            bookingPlatform: 'Viator'
-          },
-          afternoon: {
-            time: '14:00',
-            activity: 'Walk through Tuileries Garden',
-            location: { name: 'Tuileries Garden', lat: 48.8636, lng: 2.3271, address: 'Place de la Concorde, 75001 Paris' },
-            duration: '1 hour',
-            cost: '$0',
-            tips: 'Perfect for photos',
-            bookingUrl: 'https://www.tripadvisor.com/Attraction_Review-g187147-d188151-Reviews-Jardin_des_Tuileries-Paris_Ile_de_France.html',
-            bookingPlatform: 'TripAdvisor'
-          },
-          evening: {
-            time: '19:00',
-            activity: 'Evening at Montmartre',
-            location: { name: 'Montmartre', lat: 48.8867, lng: 2.3431, address: 'Montmartre, 75018 Paris' },
-            duration: '2 hours',
-            cost: '$30',
-            tips: 'Visit Sacré-Cœur for sunset views',
-            bookingUrl: 'https://www.getyourguide.com/paris-l16/montmartre-guided-walking-tour-t38307/',
-            bookingPlatform: 'GetYourGuide'
-          },
-          transportation: [
-            {
-              from: 'Hotel',
-              to: 'Louvre',
-              method: 'Metro',
-              duration: '15 minutes',
-              cost: '$2.50',
-              details: 'Take Line 1 to Palais Royal-Musée du Louvre',
-              bookingUrl: 'https://www.ratp.fr/en/titres-et-tarifs'
-            }
-          ],
-          dining: [
-            {
-              meal: 'Lunch',
-              restaurant: 'Café Marly',
-              cuisine: 'French',
-              priceRange: '$25-40',
-              specialty: 'Croque Monsieur',
-              location: { name: 'Café Marly', lat: 48.8606, lng: 2.3376, address: '93 Rue de Rivoli, 75001 Paris' },
-              bookingUrl: 'https://www.opentable.com/r/cafe-marly-paris',
-              bookingPlatform: 'OpenTable'
-            }
-          ],
-          highlights: ['Mona Lisa', 'Montmartre atmosphere'],
-          totalCost: '$74.50'
-        },
-        {
-          day: 3,
-          title: 'Champs-Élysées & Shopping',
-          theme: 'Luxury & Shopping',
-          morning: {
-            time: '10:00',
-            activity: 'Arc de Triomphe and Champs-Élysées',
-            location: { name: 'Arc de Triomphe', lat: 48.8738, lng: 2.2950, address: 'Place Charles de Gaulle, 75008 Paris' },
-            duration: '2 hours',
-            cost: '$13',
-            tips: 'Climb to the top for panoramic views',
-            bookingUrl: 'https://www.viator.com/Paris-attractions/Arc-de-Triomphe/d479-a220',
-            bookingPlatform: 'Viator'
-          },
-          afternoon: {
-            time: '14:00',
-            activity: 'Shopping on Champs-Élysées',
-            location: { name: 'Champs-Élysées', lat: 48.8698, lng: 2.3077, address: 'Avenue des Champs-Élysées, 75008 Paris' },
-            duration: '3 hours',
-            cost: '$0',
-            tips: 'Visit flagship stores and boutiques',
-            bookingUrl: 'https://www.tripadvisor.com/Attraction_Review-g187147-d188151-Reviews-Champs_Elysees-Paris_Ile_de_France.html',
-            bookingPlatform: 'TripAdvisor'
-          },
-          evening: {
-            time: '19:00',
-            activity: 'Farewell dinner at fine dining restaurant',
-            location: { name: 'Le Jules Verne', lat: 48.8584, lng: 2.2945, address: 'Eiffel Tower, 75007 Paris' },
-            duration: '2.5 hours',
-            cost: '$120',
-            tips: 'Reserve well in advance for this exclusive experience',
-            bookingUrl: 'https://www.resy.com/cities/par/le-jules-verne',
-            bookingPlatform: 'Resy'
-          },
-          transportation: [
-            {
-              from: 'Hotel',
-              to: 'Arc de Triomphe',
-              method: 'Metro',
-              duration: '20 minutes',
-              cost: '$2.50',
-              details: 'Take Line 1 to Charles de Gaulle - Étoile',
-              bookingUrl: 'https://www.ratp.fr/en/titres-et-tarifs'
-            }
-          ],
-          dining: [
-            {
-              meal: 'Dinner',
-              restaurant: 'Le Jules Verne',
-              cuisine: 'French Fine Dining',
-              priceRange: '$100-150',
-              specialty: 'Tasting Menu',
-              location: { name: 'Le Jules Verne', lat: 48.8584, lng: 2.2945, address: 'Eiffel Tower, 75007 Paris' },
-              bookingUrl: 'https://www.resy.com/cities/par/le-jules-verne',
-              bookingPlatform: 'Resy'
-            }
-          ],
-          highlights: ['Arc de Triomphe views', 'Luxury shopping', 'Fine dining experience'],
-          totalCost: '$135.50'
-        }
-      ],
+      itinerary: itinerary,
       accommodationSuggestions: [
         {
-          name: 'Grand Hotel Paris',
-          type: 'Hotel',
-          priceRange: '$200 - $300 per night',
-          location: 'City Center',
-          amenities: ['WiFi', 'Breakfast', 'Gym', 'Spa'],
-          pros: ['Great location', 'Luxury amenities'],
-          cons: ['Expensive', 'Small rooms'],
-          bookingUrl: 'https://www.google.com/travel/hotels'
-        },
-        {
-          name: 'Boutique Paris Suites',
+          name: `${destination.split(',')[0]} Grand Hotel`,
           type: 'Hotel',
           priceRange: '$150 - $250 per night',
-          location: 'Marais District',
-          amenities: ['WiFi', 'Kitchen', 'Balcony'],
-          pros: ['Charming atmosphere', 'Good value'],
-          cons: ['No elevator', 'Limited amenities'],
-          bookingUrl: 'https://www.google.com/travel/hotels'
+          location: 'City Center',
+          amenities: ['WiFi', 'Breakfast', 'Gym', 'Pool'],
+          pros: ['Great location', 'Good value', 'Friendly staff'],
+          cons: ['Small rooms', 'Noisy at night'],
+          bookingUrl: 'https://www.booking.com'
+        },
+        {
+          name: `${destination.split(',')[0]} Boutique Hotel`,
+          type: 'Hotel',
+          priceRange: '$200 - $350 per night',
+          location: 'Downtown',
+          amenities: ['WiFi', 'Breakfast', 'Spa', 'Restaurant'],
+          pros: ['Luxury experience', 'Quiet location', 'Excellent service'],
+          cons: ['Higher price', 'Limited parking'],
+          bookingUrl: 'https://www.booking.com'
         }
       ],
       transportation: {
-        airport: 'Charles de Gaulle Airport (CDG)',
-        fromAirport: 'RER B train, $12, 45 minutes',
-        localTransport: 'Metro system, $2.50 per trip, 24-hour passes available',
-        recommendations: ['Get a Paris Visite pass', 'Use Velib bike sharing']
+        airport: `${destination.split(',')[0]} International Airport`,
+        fromAirport: 'Taxi or shuttle service, $25-40',
+        localTransport: 'Metro/Bus system available',
+        recommendations: ['Get a travel pass', 'Use ride-sharing apps', 'Walk when possible']
       },
       dining: {
-        localCuisine: 'Croissants, Coq au Vin, Escargots, French Onion Soup',
-        restaurantTypes: ['Bistros', 'Brasseries', 'Fine dining', 'Street food'],
+        localCuisine: 'Local specialties and international options',
+        restaurantTypes: ['Fine dining', 'Street food', 'Cafes', 'Bars'],
         priceRanges: {
-          budget: '$15-25 per meal',
-          midRange: '$25-50 per meal',
-          luxury: '$50+ per meal'
+          budget: '$10-20 per meal',
+          midRange: '$20-40 per meal',
+          luxury: '$40+ per meal'
         },
-        recommendations: ['Try local pastries', 'Book popular restaurants in advance']
+        recommendations: ['Try local specialties', 'Book popular restaurants in advance', 'Explore food markets']
       },
       culturalInsights: {
-        customs: ['Greet with "Bonjour"', 'Tipping is appreciated but not mandatory'],
-        etiquette: ['Dress well when dining out', 'Learn basic French phrases'],
+        customs: ['Respect local customs', 'Learn basic phrases', 'Dress appropriately'],
+        etiquette: ['Be polite and patient', 'Tip appropriately', 'Follow local dining customs'],
         language: {
-          hello: 'Bonjour',
-          thankYou: 'Merci',
-          goodbye: 'Au revoir'
+          hello: 'Hello',
+          thankYou: 'Thank you',
+          goodbye: 'Goodbye'
         }
       },
       travelTips: [
-        'Book museum tickets online to avoid long queues',
-        'Use the Metro for efficient transportation around the city',
-        'Try local pastries and coffee at neighborhood cafes',
-        'Learn basic French phrases for better interactions'
+        'Book accommodations in advance',
+        'Get travel insurance',
+        'Learn basic local phrases',
+        'Keep important documents safe',
+        'Stay hydrated and well-rested'
       ],
       emergencyInfo: {
-        police: '17',
-        hospital: 'Hôpital Hôtel-Dieu, +33 1 42 34 82 34',
-        embassy: 'US Embassy: +33 1 43 12 22 22'
+        police: '911 (Emergency)',
+        hospital: 'Local Hospital: +1-555-0123',
+        embassy: 'US Embassy: +1-555-0456'
       },
       packingList: {
-        essentials: ['Comfortable walking shoes', 'Travel adapter', 'Camera'],
-        seasonal: ['Light jacket (spring/fall)', 'Sunglasses', 'Umbrella'],
-        optional: ['Dress clothes for fine dining', 'Guidebook', 'Portable charger']
+        essentials: ['Passport', 'Phone charger', 'Comfortable shoes', 'Weather-appropriate clothing'],
+        seasonal: ['Sunscreen', 'Umbrella', 'Light jacket'],
+        optional: ['Camera', 'Power bank', 'Travel adapter', 'Books']
       }
+    };
+  }
+
+  private async getDestinationCoordinatesAsync(destination: string): Promise<{ lat: number; lng: number }> {
+    // Default coordinates (fallback)
+    const defaultCoords = { lat: 40.7128, lng: -74.0060 }; // NYC as fallback
+    
+    if (!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) {
+      console.warn('Mapbox access token not available for geocoding');
+      return defaultCoords;
     }
+
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(destination)}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}&limit=1`
+      );
+      
+      if (!response.ok) {
+        console.warn('Geocoding request failed:', response.status);
+        return defaultCoords;
+      }
+
+      const data = await response.json();
+      
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].center;
+        console.log(`Geocoded "${destination}" to: ${lat}, ${lng}`);
+        return { lat, lng };
+      } else {
+        console.warn(`No coordinates found for destination: ${destination}`);
+        return defaultCoords;
+      }
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return defaultCoords;
+    }
+  }
+
+  private generateItinerary(destination: string, numDays: number, coords: { lat: number; lng: number }): any[] {
+    const itinerary = [];
+    const cityName = destination.split(',')[0];
+    
+    // Create truly unique activities based on destination and day
+    const createUniqueActivity = (day: number, timeOfDay: string, activityType: string) => {
+      const activityTemplates = {
+        morning: [
+          `Day ${day} ${cityName} Sunrise Experience`,
+          `${cityName} Day ${day} Morning Discovery`,
+          `Day ${day} ${cityName} Early Bird Adventure`,
+          `${cityName} Day ${day} Morning Cultural Immersion`,
+          `Day ${day} ${cityName} Sunrise Photography Session`,
+          `${cityName} Day ${day} Morning Market Exploration`,
+          `Day ${day} ${cityName} Early Morning Walking Tour`,
+          `${cityName} Day ${day} Morning Historical Journey`,
+          `Day ${day} ${cityName} Sunrise Viewing Experience`,
+          `${cityName} Day ${day} Morning Local Life Discovery`
+        ],
+        afternoon: [
+          `Day ${day} ${cityName} Afternoon Cultural Experience`,
+          `${cityName} Day ${day} Midday Adventure`,
+          `Day ${day} ${cityName} Afternoon Local Discovery`,
+          `${cityName} Day ${day} Midday Cultural Immersion`,
+          `Day ${day} ${cityName} Afternoon Historical Tour`,
+          `${cityName} Day ${day} Midday Art and Culture`,
+          `Day ${day} ${cityName} Afternoon Local Cuisine`,
+          `${cityName} Day ${day} Midday Shopping Experience`,
+          `Day ${day} ${cityName} Afternoon Nature Walk`,
+          `${cityName} Day ${day} Midday Entertainment`
+        ],
+        evening: [
+          `Day ${day} ${cityName} Evening Cultural Show`,
+          `${cityName} Day ${day} Night Life Experience`,
+          `Day ${day} ${cityName} Evening Dining Adventure`,
+          `${cityName} Day ${day} Night Entertainment`,
+          `Day ${day} ${cityName} Evening Local Experience`,
+          `${cityName} Day ${day} Night Cultural Performance`,
+          `Day ${day} ${cityName} Evening Street Food Tour`,
+          `${cityName} Day ${day} Night Local Bar Experience`,
+          `Day ${day} ${cityName} Evening Walking Tour`,
+          `${cityName} Day ${day} Night Photography Session`
+        ]
+      };
+      
+      // Use day and time to create unique index
+      const dayOffset = day - 1;
+      const timeIndex = timeOfDay === 'morning' ? 0 : timeOfDay === 'afternoon' ? 1 : 2;
+      const activityIndex = (dayOffset * 3 + timeIndex) % activityTemplates[timeOfDay as keyof typeof activityTemplates].length;
+      
+      return activityTemplates[timeOfDay as keyof typeof activityTemplates][activityIndex];
+    };
+
+    // Create unique location names
+    const createUniqueLocation = (day: number, timeOfDay: string) => {
+      const locationTypes = [
+        'Historic District', 'Cultural Quarter', 'Arts District', 'Old Town', 'Modern Center',
+        'Waterfront Area', 'University District', 'Business District', 'Entertainment Zone',
+        'Residential Quarter', 'Industrial Heritage Site', 'Government District', 'Religious Quarter',
+        'Market District', 'Park District', 'Shopping District', 'Theater District', 'Museum Quarter',
+        'Restaurant Row', 'Nightlife District', 'Historic Square', 'Cultural Center', 'Art Gallery District',
+        'Local Market Area', 'Historic Church District', 'University Campus', 'Business Center',
+        'Entertainment Complex', 'Residential Neighborhood', 'Industrial Area'
+      ];
+      
+      const locationIndex = (day - 1 + (timeOfDay === 'morning' ? 0 : timeOfDay === 'afternoon' ? 10 : 20)) % locationTypes.length;
+      return `${cityName} ${locationTypes[locationIndex]}`;
+    };
+
+    // Create diverse themes
+    const getThemeForDay = (day: number) => {
+      const themes = ['Cultural', 'Adventure', 'Relaxation', 'Historical', 'Modern', 'Nature', 'Artistic', 'Culinary', 'Entertainment', 'Educational'];
+      return themes[(day - 1) % themes.length];
+    };
+
+    for (let day = 1; day <= numDays; day++) {
+      const morningActivity = createUniqueActivity(day, 'morning', 'morning');
+      const afternoonActivity = createUniqueActivity(day, 'afternoon', 'afternoon');
+      const eveningActivity = createUniqueActivity(day, 'evening', 'evening');
+
+      // Generate varied coordinates around the destination center
+      const baseLat = coords.lat + (Math.random() - 0.5) * 0.02;
+      const baseLng = coords.lng + (Math.random() - 0.5) * 0.02;
+
+      itinerary.push({
+        day: day,
+        title: `Day ${day} - ${getThemeForDay(day)} ${cityName} Experience`,
+        theme: getThemeForDay(day),
+        morning: {
+          time: '09:00',
+          activity: morningActivity,
+          location: { 
+            name: createUniqueLocation(day, 'morning'), 
+            lat: baseLat + (Math.random() - 0.5) * 0.005, 
+            lng: baseLng + (Math.random() - 0.5) * 0.005, 
+            address: `${createUniqueLocation(day, 'morning')}, ${destination}` 
+          },
+          duration: `${Math.floor(Math.random() * 2) + 2} hours`,
+          cost: `$${Math.floor(Math.random() * 25) + 10}`,
+          tips: `Best time to visit is early morning for ${morningActivity.toLowerCase()}`,
+          bookingUrl: 'https://www.viator.com',
+          bookingPlatform: 'Viator'
+        },
+        afternoon: {
+          time: '14:00',
+          activity: afternoonActivity,
+          location: { 
+            name: createUniqueLocation(day, 'afternoon'), 
+            lat: baseLat + (Math.random() - 0.5) * 0.005, 
+            lng: baseLng + (Math.random() - 0.5) * 0.005, 
+            address: `${createUniqueLocation(day, 'afternoon')}, ${destination}` 
+          },
+          duration: `${Math.floor(Math.random() * 2) + 3} hours`,
+          cost: `$${Math.floor(Math.random() * 35) + 15}`,
+          tips: `Perfect afternoon activity for ${afternoonActivity.toLowerCase()}`,
+          bookingUrl: 'https://www.getyourguide.com',
+          bookingPlatform: 'GetYourGuide'
+        },
+        evening: {
+          time: '19:00',
+          activity: eveningActivity,
+          location: { 
+            name: createUniqueLocation(day, 'evening'), 
+            lat: baseLat + (Math.random() - 0.5) * 0.005, 
+            lng: baseLng + (Math.random() - 0.5) * 0.005, 
+            address: `${createUniqueLocation(day, 'evening')}, ${destination}` 
+          },
+          duration: `${Math.floor(Math.random() * 2) + 2} hours`,
+          cost: `$${Math.floor(Math.random() * 40) + 25}`,
+          tips: `Great evening experience for ${eveningActivity.toLowerCase()}`,
+          bookingUrl: 'https://www.tripadvisor.com',
+          bookingPlatform: 'TripAdvisor'
+        },
+        transportation: [
+          {
+            from: 'Previous location',
+            to: 'Next location',
+            method: ['Metro', 'Bus', 'Walk', 'Taxi', 'Bike'][Math.floor(Math.random() * 5)],
+            duration: `${Math.floor(Math.random() * 20) + 10} minutes`,
+            cost: `$${(Math.random() * 3 + 1).toFixed(2)}`,
+            details: 'Use local transportation network',
+            bookingUrl: 'https://www.local-transport.com'
+          }
+        ],
+        dining: [
+          {
+            meal: 'Dinner',
+            restaurant: `${cityName} Day ${day} ${['Traditional', 'Modern', 'Fusion', 'Local', 'International'][Math.floor(Math.random() * 5)]} Restaurant`,
+            cuisine: ['Local', 'International', 'Fusion', 'Traditional', 'Modern'][Math.floor(Math.random() * 5)],
+            priceRange: `$${Math.floor(Math.random() * 20) + 20}-${Math.floor(Math.random() * 30) + 40}`,
+            specialty: `${cityName} Day ${day} specialty dish`,
+            location: { 
+              name: `${cityName} Day ${day} Dining District`, 
+              lat: baseLat + (Math.random() - 0.5) * 0.005, 
+              lng: baseLng + (Math.random() - 0.5) * 0.005, 
+              address: `${cityName} Day ${day} Dining District, ${destination}` 
+            },
+            bookingUrl: 'https://www.opentable.com',
+            bookingPlatform: 'OpenTable'
+          }
+        ],
+        highlights: [
+          `${morningActivity} experience`,
+          `${afternoonActivity} discovery`,
+          `${eveningActivity} adventure`
+        ],
+        totalCost: `$${Math.floor(Math.random() * 80) + 60}`
+      });
+    }
+
+    return itinerary;
   }
 
   private extractSuggestions(text: string): string[] {
@@ -652,6 +767,52 @@ Return ONLY the JSON object, no additional text or explanations.`;
 
   isAvailable(): boolean {
     return !!this.genAI
+  }
+
+  private async autocorrectUserInput(userInput: string): Promise<string> {
+    if (!this.genAI) {
+      return userInput // Return original if AI not available
+    }
+
+    try {
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+      
+      const autocorrectPrompt = `You are an expert travel assistant. The user has entered a travel request that may contain typos, spelling mistakes, or unclear language. 
+
+Your task is to correct and clarify their input while preserving their original intent. Focus on:
+
+1. Correcting spelling mistakes in destination names, activities, and travel terms
+2. Fixing grammar and punctuation errors
+3. Clarifying ambiguous language while keeping the user's meaning
+4. Standardizing destination names to their proper format (e.g., "paris france" → "Paris, France")
+5. Maintaining all the important details like budget, duration, preferences, etc.
+
+User input: "${userInput}"
+
+Please return ONLY the corrected version of their input, maintaining their original intent and all important details. Do not add explanations or additional text - just the corrected travel request.`
+
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: autocorrectPrompt }] }],
+        generationConfig: {
+          temperature: 0.3, // Lower temperature for more consistent corrections
+          maxOutputTokens: 500,
+        },
+      });
+      
+      const correctedInput = result.response.text().trim()
+      
+      // If the AI response seems to be an explanation rather than a correction, return original
+      if (correctedInput.toLowerCase().includes('corrected version:') || 
+          correctedInput.toLowerCase().includes('here is the corrected') ||
+          correctedInput.length > userInput.length * 2) {
+        return userInput
+      }
+      
+      return correctedInput
+    } catch (error) {
+      console.error('Error autocorrecting user input:', error)
+      return userInput // Return original if correction fails
+    }
   }
 }
 
