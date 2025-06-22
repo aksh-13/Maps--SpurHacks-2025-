@@ -31,16 +31,7 @@ export class GeminiService {
 
     try {
       const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-      const chat = model.startChat({
-        history: conversationHistory.map(msg => ({
-          role: msg.role,
-          parts: [{ text: msg.content }]
-        })),
-        generationConfig: {
-          maxOutputTokens: 1000,
-          temperature: 0.7,
-        },
-      });
+      const chat = model.startChat();
 
       const result = await chat.sendMessage(message)
       const response = result.response
@@ -73,8 +64,6 @@ export class GeminiService {
 
     const generationConfig = {
       temperature: 0.7,
-      topK: 1,
-      topP: 1,
       maxOutputTokens: 8192,
     };
 
@@ -295,11 +284,7 @@ Return ONLY the JSON object, no additional text or explanations.`;
 
     try {
       const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: systemInstruction }] }],
-        generationConfig,
-        safetySettings,
-      });
+      const result = await model.generateContent(systemInstruction);
       
       const response = result.response;
       const responseText = response.text();
@@ -332,7 +317,7 @@ Return ONLY the JSON object, no additional text or explanations.`;
     const promptLower = correctedPrompt.toLowerCase();
     
     // Extract destination from prompt - improved logic
-    let destination = 'Paris, France'; // default
+    let destination = ''; // No hardcoded default
     
     // More comprehensive destination extraction patterns
     const destinationPatterns = [
@@ -378,6 +363,12 @@ Return ONLY the JSON object, no additional text or explanations.`;
           break;
         }
       }
+    }
+    
+    // If no destination was extracted, use a generic fallback
+    if (!destination) {
+      destination = 'Your Destination';
+      console.log('No destination extracted, using generic fallback');
     }
     
     // Extract duration from prompt
@@ -550,7 +541,7 @@ Return ONLY the JSON object, no additional text or explanations.`;
           `Day ${day} ${cityName} Afternoon Historical Tour`,
           `${cityName} Day ${day} Midday Art and Culture`,
           `Day ${day} ${cityName} Afternoon Local Cuisine`,
-          `${cityName} Day ${day} Midday Shopping Experience`,
+          `Day ${day} ${cityName} Midday Shopping Experience`,
           `Day ${day} ${cityName} Afternoon Nature Walk`,
           `${cityName} Day ${day} Midday Entertainment`
         ],
@@ -633,7 +624,7 @@ Return ONLY the JSON object, no additional text or explanations.`;
             name: createUniqueLocation(day, 'afternoon'), 
             lat: baseLat + (Math.random() - 0.5) * 0.005, 
             lng: baseLng + (Math.random() - 0.5) * 0.005, 
-            address: `${createUniqueLocation(day, 'afternoon')}, ${destination}` 
+            address: `${createUniqueLocation(day, 'afternoon')}, ${destination}`
           },
           duration: `${Math.floor(Math.random() * 2) + 3} hours`,
           cost: `$${Math.floor(Math.random() * 35) + 15}`,
@@ -833,13 +824,7 @@ User input: "${userInput}"
 
 Please return ONLY the corrected version of their input, maintaining their original intent and all important details. Do not add explanations or additional text - just the corrected travel request.`
 
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: autocorrectPrompt }] }],
-        generationConfig: {
-          temperature: 0.3, // Lower temperature for more consistent corrections
-          maxOutputTokens: 500,
-        },
-      });
+      const result = await model.generateContent(autocorrectPrompt);
       
       const correctedInput = result.response.text().trim()
       
@@ -858,4 +843,4 @@ Please return ONLY the corrected version of their input, maintaining their origi
   }
 }
 
-export const geminiService = new GeminiService() 
+export const geminiService = new GeminiService()
