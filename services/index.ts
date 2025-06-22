@@ -1,5 +1,8 @@
 // Authentication Services
-export { auth0Service, type UserProfile } from './auth/auth0'
+export { supabaseAuthService, type UserProfile } from './auth/supabase'
+
+// AI Services
+export { geminiService, type ChatMessage, type ChatResponse } from './ai/gemini'
 
 // Accommodation Services
 export { accommodationService, type AccommodationSearchParams, type UnifiedAccommodationResult } from './hotels/accommodation-service'

@@ -10,7 +10,13 @@ interface TripMapProps {
       day: number
       locations: { name: string; lat: number; lng: number }[]
     }[]
-    accommodations: any[]
+    accommodations?: any[]
+    accommodationSuggestions?: {
+      name: string;
+      type: string;
+      priceRange: string;
+      bookingUrl: string;
+    }[];
   }
 }
 
@@ -65,14 +71,16 @@ export default function TripMap({ tripPlan }: TripMapProps) {
     if (!map.current || !mapLoaded) return
 
     // Add markers for all locations
-    const allLocations = [
-      ...tripPlan.itinerary.flatMap(day => day.locations),
-      ...tripPlan.accommodations.map(acc => ({
-        name: acc.name,
-        lat: acc.location.lat,
-        lng: acc.location.lng
-      }))
-    ]
+    const itineraryLocations = tripPlan.itinerary.flatMap(day => day.locations)
+    
+    // Use accommodationSuggestions if available, otherwise use old accommodations field
+    const accommodationLocations = (tripPlan.accommodationSuggestions || tripPlan.accommodations || []).map((acc: any) => ({
+      name: acc.name,
+      lat: acc.location?.lat, // Use optional chaining for safety
+      lng: acc.location?.lng
+    })).filter(acc => acc.lat && acc.lng) // Filter out any without coordinates
+
+    const allLocations = [...itineraryLocations, ...accommodationLocations]
 
     allLocations.forEach((location, index) => {
       const el = document.createElement('div')
@@ -80,7 +88,8 @@ export default function TripMap({ tripPlan }: TripMapProps) {
       el.style.width = '25px'
       el.style.height = '25px'
       el.style.borderRadius = '50%'
-      el.style.backgroundColor = index < tripPlan.accommodations.length ? '#3b82f6' : '#10b981'
+      // Differentiate marker colors
+      el.style.backgroundColor = index >= itineraryLocations.length ? '#3b82f6' : '#10b981'
       el.style.border = '3px solid white'
       el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)'
       el.style.cursor = 'pointer'
@@ -122,17 +131,19 @@ export default function TripMap({ tripPlan }: TripMapProps) {
                 </ul>
               </div>
             ))}
-            <div className="mt-4">
-              <p className="font-medium">Accommodations:</p>
-              <ul className="ml-4 space-y-1">
-                {tripPlan.accommodations.map((acc, index) => (
-                  <li key={index} className="flex items-center">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                    {acc.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {(tripPlan.accommodations || tripPlan.accommodationSuggestions) && (
+              <div className="mt-4">
+                <p className="font-medium">Accommodations:</p>
+                <ul className="ml-4 space-y-1">
+                  {(tripPlan.accommodations || tripPlan.accommodationSuggestions)?.map((acc: any, index: number) => (
+                    <li key={index} className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                      {acc.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
