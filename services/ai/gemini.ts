@@ -309,6 +309,11 @@ Return ONLY the JSON object, no additional text or explanations.`;
       if (error instanceof Error) {
         console.error('Error details:', error.message);
         console.error('Error stack:', error.stack);
+        
+        // Check if the error message contains non-JSON content
+        if (error.message.includes('Unexpected token') || error.message.includes('is not valid JSON')) {
+          console.warn('API returned non-JSON response, using fallback');
+        }
       }
       return await this.getMockTripPlan(prompt)
     }
