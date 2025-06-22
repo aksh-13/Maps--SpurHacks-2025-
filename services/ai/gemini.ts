@@ -331,20 +331,50 @@ Return ONLY the JSON object, no additional text or explanations.`;
     // Parse the prompt to extract destination and duration
     const promptLower = correctedPrompt.toLowerCase();
     
-    // Extract destination from prompt
+    // Extract destination from prompt - improved logic
     let destination = 'Paris, France'; // default
+    
+    // More comprehensive destination extraction patterns
     const destinationPatterns = [
-      { pattern: /(?:in|to|visit|travel to|go to)\s+([a-zA-Z\s,]+?)(?:\s+for|\s+with|\s+interested|\s+budget|$)/i, default: 'Paris, France' },
-      { pattern: /([a-zA-Z\s,]+?)(?:\s+for\s+\d+\s+days?|\s+with\s+my|\s+budget|\s+interested)/i, default: 'Paris, France' },
-      { pattern: /(\d+\s+days?\s+in\s+[a-zA-Z\s,]+)/i, default: 'Paris, France' }
+      // "Plan a trip to dubai" or "I want to go to dubai"
+      { pattern: /(?:plan\s+a\s+trip\s+to|go\s+to|visit|travel\s+to)\s+([a-zA-Z\s,]+?)(?:\s+for|\s+with|\s+interested|\s+budget|$)/i },
+      // "trip to dubai" or "vacation in dubai"
+      { pattern: /(?:trip\s+to|vacation\s+in|holiday\s+in)\s+([a-zA-Z\s,]+?)(?:\s+for|\s+with|\s+interested|\s+budget|$)/i },
+      // "dubai for 5 days" or "dubai with family"
+      { pattern: /^([a-zA-Z\s,]+?)(?:\s+for\s+\d+\s+days?|\s+with\s+my|\s+budget|\s+interested)/i },
+      // "5 days in dubai"
+      { pattern: /(\d+\s+days?\s+in\s+[a-zA-Z\s,]+)/i },
+      // Simple "to dubai" pattern
+      { pattern: /to\s+([a-zA-Z\s,]+?)(?:\s+for|\s+with|\s+interested|\s+budget|$)/i }
     ];
     
-    for (const { pattern, default: defaultDest } of destinationPatterns) {
+    for (const { pattern } of destinationPatterns) {
       const match = promptLower.match(pattern);
       if (match && match[1]) {
         const extracted = match[1].trim();
         if (extracted.length > 2 && !extracted.includes('days') && !extracted.includes('budget')) {
-          destination = extracted.charAt(0).toUpperCase() + extracted.slice(1);
+          // Clean up the extracted destination
+          let cleanDestination = extracted.replace(/\s+/g, ' ').trim();
+          
+          // Capitalize properly
+          cleanDestination = cleanDestination.split(' ').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          ).join(' ');
+          
+          // If the destination doesn't already have a country, try to get it from geocoding
+          if (!cleanDestination.includes(',')) {
+            try {
+              const coords = await this.getDestinationCoordinatesAsync(cleanDestination);
+              // If geocoding worked, the destination is valid - keep it as is
+              // The geocoding service will handle the full location name
+              console.log(`Successfully geocoded "${cleanDestination}"`);
+            } catch (error) {
+              console.warn(`Could not geocode "${cleanDestination}", keeping as extracted`);
+            }
+          }
+          
+          destination = cleanDestination;
+          console.log(`Extracted destination: "${extracted}" -> "${destination}"`);
           break;
         }
       }
