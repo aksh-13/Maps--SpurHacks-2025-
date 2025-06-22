@@ -20,8 +20,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error generating trip:', error)
+    // Always return a JSON response
     return NextResponse.json(
-      { error: 'Failed to generate trip plan' },
+      { success: false, error: 'Failed to generate trip plan' },
       { status: 500 }
     )
   }
