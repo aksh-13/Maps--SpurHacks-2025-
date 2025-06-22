@@ -305,6 +305,11 @@ Return ONLY the JSON object, no additional text or explanations.`;
       }
     } catch (error) {
       console.error('Error generating trip plan with Gemini:', error)
+      // Log the full error for debugging
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+        console.error('Error stack:', error.stack);
+      }
       return await this.getMockTripPlan(prompt)
     }
   }
