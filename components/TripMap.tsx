@@ -482,6 +482,7 @@ export default function TripMap({ tripPlan }: TripMapProps) {
     }
   }, []);
 
+
   if (!process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) {
     return (
       <div className="p-6 text-center text-gray-800">

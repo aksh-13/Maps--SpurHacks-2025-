@@ -1,143 +1,243 @@
-# TripPlanner 3D - AI-Powered Travel Planning App
+# TripPlanner 3D 🌍✈️
 
-A modern web application that uses AI to create personalized trip itineraries with interactive 3D maps and accommodation recommendations.
+An AI-powered trip planning application built with Next.js 14, React 18, TypeScript, Tailwind CSS, Framer Motion, and Mapbox GL JS.
 
-## Features
+## 🚀 Features
 
-- 🤖 **AI-Powered Trip Planning**: Generate personalized itineraries from natural language prompts
-- 🗺️ **Interactive 3D Maps**: Visualize your trip with Mapbox GL JS 3D maps
-- 🏨 **Accommodation Integration**: Browse hotels and Airbnb options
-- 📱 **Modern UI/UX**: Beautiful, responsive design with smooth animations
-- ⚡ **Real-time Updates**: Dynamic trip planning and real-time map updates
+- **Interactive 3D Maps**: Explore destinations with immersive 3D map visualization
+- **AI Travel Assistant**: Chat with Gemini AI for personalized travel planning and recommendations
+- **Smart Trip Planning**: Create personalized itineraries with intelligent recommendations
+- **Accommodation Search**: Find hotels and vacation rentals with real-time availability
+- **Weather Integration**: Get weather forecasts and packing recommendations
+- **Translation Services**: Real-time translation and phrase books for international travel
+- **Flight Search**: Search and compare flights from multiple providers
+- **Music Recommendations**: AI-powered music playlists for your journey
+- **eSIM Services**: Get connectivity solutions for international travel
+- **Secure Payments**: Process payments securely with Stripe integration
+- **User Authentication**: Secure user accounts with Supabase Auth
+- **Responsive Design**: Beautiful UI that works on all devices
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 - **Frontend**: Next.js 14, React 18, TypeScript
 - **Styling**: Tailwind CSS, Framer Motion
 - **Maps**: Mapbox GL JS
-- **Icons**: Lucide React
-- **State Management**: React Hooks
-- **Deployment**: Vercel (recommended)
+- **AI**: Google Gemini AI
+- **Authentication**: Supabase Auth
+- **Database**: Supabase (PostgreSQL)
+- **Payments**: Stripe
+- **Weather**: OpenWeatherMap API
+- **Translation**: Google Translate API
+- **Flights**: Skyscanner, Amadeus, Kiwi APIs
+- **Music**: Spotify API
+- **Deployment**: Vercel
 
-## Getting Started
-
-### Prerequisites
+## 📋 Prerequisites
 
 - Node.js 18+ 
 - npm or yarn
-- Mapbox account (free tier available)
-- OpenAI API key (optional for AI features)
+- Mapbox access token
+- Supabase project
+- Various API keys (see Environment Variables section)
 
-### Installation
+## 🚀 Quick Start
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
+   git clone <repository-url>
    cd trip-planner-3d
    ```
 
 2. **Install dependencies**
    ```bash
    npm install
-   # or
-   yarn install
    ```
 
 3. **Set up environment variables**
    Create a `.env.local` file in the root directory:
    ```env
-   # Required for 3D maps
-   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_access_token_here
+   # Maps
+   MAPBOX_ACCESS_TOKEN=your_mapbox_access_token_here
    
-   # Optional: For AI trip planning
-   OPENAI_API_KEY=your_openai_api_key_here
+   # Authentication (Supabase)
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   
+   # AI Assistant
+   GEMINI_API_KEY=your_gemini_api_key_here
+   
+   # Weather
+   OPENWEATHER_API_KEY=your_openweather_api_key_here
+   
+   # Translation
+   GOOGLE_TRANSLATE_API_KEY=your_google_translate_api_key_here
+   
+   # Flights
+   SKYSCANNER_API_KEY=your_skyscanner_api_key_here
+   AMADEUS_API_KEY=your_amadeus_api_key_here
+   AMADEUS_CLIENT_SECRET=your_amadeus_client_secret_here
+   KIWI_API_KEY=your_kiwi_api_key_here
+   
+   # Music
+   SPOTIFY_CLIENT_ID=your_spotify_client_id_here
+   SPOTIFY_CLIENT_SECRET=your_spotify_client_secret_here
+   
+   # Payments
+   STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+   STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+   
+   # Accommodation
+   GOOGLE_PLACES_API_KEY=your_google_places_api_key_here
+   
+   # Affiliate Links
+   AIRALO_AFFILIATE_LINK=your_airalo_affiliate_link_here
    ```
 
-4. **Get API Keys**
-
-   **Mapbox (Required for 3D maps):**
-   - Sign up at [Mapbox](https://account.mapbox.com/)
-   - Create a new access token
-   - Add it to your `.env.local` file
-
-   **OpenAI (Optional for AI features):**
-   - Sign up at [OpenAI](https://platform.openai.com/)
-   - Generate an API key
-   - Add it to your `.env.local` file
-
-5. **Run the development server**
+4. **Run the development server**
    ```bash
    npm run dev
-   # or
-   yarn dev
    ```
 
-6. **Open your browser**
+5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## Usage
+## 🔑 API Keys Setup
 
-1. **Describe Your Trip**: Enter a natural language description of your dream vacation
-2. **Generate Plan**: Click "Generate Trip Plan" to create your personalized itinerary
-3. **Explore 3D Map**: View your trip locations on an interactive 3D map
-4. **Browse Accommodations**: Check out hotel and Airbnb recommendations
-5. **Review Itinerary**: See your day-by-day schedule with activities and locations
+### **Essential APIs (Free Tiers Available):**
 
-## Project Structure
+**Mapbox (Maps):**
+- Sign up at [Mapbox](https://www.mapbox.com/)
+- Free tier: 50,000 map loads/month
+
+**Supabase (Authentication & Database):**
+- Sign up at [Supabase](https://supabase.com/)
+- Free tier: 50,000 monthly active users, 500MB database
+
+**Google Gemini AI (AI Assistant):**
+- Sign up at [Google AI Studio](https://ai.google.dev/)
+- Free tier: 15 requests per minute, 1,500 requests per day
+
+**OpenWeatherMap (Weather):**
+- Sign up at [OpenWeatherMap](https://openweathermap.org/)
+- Free tier: 1,000 calls/day
+
+**Google Cloud Translate (Translation):**
+- Enable Google Cloud Translate API
+- Free tier: 500,000 characters/month
+
+**Stripe (Payments):**
+- Sign up at [Stripe](https://stripe.com/)
+- 2.9% + 30¢ per transaction
+
+**Spotify (Music):**
+- Create app at [Spotify Developer](https://developer.spotify.com/)
+- Free for basic usage
+
+### **Optional APIs:**
+
+**Flight Search APIs:**
+- [Skyscanner](https://rapidapi.com/skyscanner) - Free tier: 1,000 requests/month
+- [Amadeus](https://developers.amadeus.com/) - Free tier: 1,000 API calls/month
+- [Kiwi](https://tequila.kiwi.com/) - Free tier: 1,000 requests/month
+
+**Google Places (Accommodation):**
+- Enable Google Places API
+- Free tier: 1,000 requests/day
+
+## 🏗️ Project Structure
 
 ```
-├── app/                    # Next.js app directory
+trip-planner-3d/
+├── app/                    # Next.js 14 app directory
+│   ├── api/               # API routes
+│   ├── auth/              # Authentication routes
 │   ├── globals.css        # Global styles
-│   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Home page
 ├── components/            # React components
 │   ├── Header.tsx         # Navigation header
-│   ├── TripPlanner.tsx    # Main trip planner
-│   ├── TripMap.tsx        # 3D map component
-│   ├── ItineraryView.tsx  # Itinerary display
-│   └── AccommodationList.tsx # Accommodation options
-├── public/               # Static assets
-├── package.json          # Dependencies
-├── tailwind.config.js    # Tailwind configuration
-└── next.config.js        # Next.js configuration
+│   ├── Auth.tsx           # Authentication component
+│   ├── TripPlanner.tsx    # Main trip planning component
+│   ├── Map3D.tsx          # 3D map component
+│   ├── AccommodationList.tsx # Accommodation search
+│   ├── Chatbot.tsx        # AI travel assistant
+│   └── ServicesIntegration.tsx # Services dashboard
+├── services/              # Service integrations
+│   ├── auth/              # Authentication services
+│   ├── ai/                # AI services (Gemini)
+│   ├── hotels/            # Accommodation services
+│   ├── weather/           # Weather services
+│   ├── translation/       # Translation services
+│   ├── transportation/    # Flight and eSIM services
+│   ├── music/             # Music services
+│   └── payments/          # Payment services
+├── lib/                   # Utility libraries
+│   └── supabase.ts        # Supabase client configuration
+├── public/                # Static assets
+└── package.json           # Dependencies
 ```
 
-## Customization
+## 🎨 Key Components
 
-### Adding New Map Styles
-Edit the map style in `components/TripMap.tsx`:
-```typescript
-style: 'mapbox://styles/mapbox/streets-v12' // Change to other styles
+### **Auth**
+Handles user authentication with Supabase, including sign up, sign in, and social login.
+
+### **TripPlanner**
+The main component that handles trip planning logic, user input, and coordinates between different services.
+
+### **Map3D**
+Interactive 3D map component using Mapbox GL JS with custom controls and trip visualization.
+
+### **AccommodationList**
+Displays accommodation options with filtering, sorting, and booking capabilities.
+
+### **Chatbot**
+AI travel assistant component using Google Gemini AI.
+
+### **ServicesIntegration**
+Dashboard for monitoring and testing all integrated services.
+
+## 🚀 Deployment
+
+### **Vercel (Recommended)**
+
+1. **Push to GitHub**
+   ```bash
+   git add .
+   git commit -m "Initial commit"
+   git push origin main
+   ```
+
+2. **Deploy to Vercel**
+   - Connect your GitHub repository to Vercel
+   - Add environment variables in Vercel dashboard
+   - Deploy automatically
+
+### **Environment Variables in Production**
+
+Add all your environment variables in the Vercel dashboard:
+- Go to Project Settings → Environment Variables
+- Add each variable from your `.env.local` file
+
+## 🔧 Development
+
+### **Available Scripts**
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
 ```
 
-### Customizing Colors
-Update the color scheme in `tailwind.config.js`:
-```javascript
-colors: {
-  primary: {
-    // Your custom colors
-  }
-}
-```
+### **Code Style**
 
-### Adding More Accommodation APIs
-Extend the accommodation integration in `components/AccommodationList.tsx` to include more booking platforms.
+This project uses:
+- **TypeScript** for type safety
+- **ESLint** for code linting
+- **Prettier** for code formatting
+- **Tailwind CSS** for styling
 
-## Deployment
-
-### Vercel (Recommended)
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy!
-
-### Other Platforms
-The app can be deployed to any platform that supports Next.js:
-- Netlify
-- Railway
-- DigitalOcean App Platform
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -145,25 +245,26 @@ The app can be deployed to any platform that supports Next.js:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
-- [Mapbox](https://mapbox.com/) for 3D mapping capabilities
-- [OpenAI](https://openai.com/) for AI integration
-- [Tailwind CSS](https://tailwindcss.com/) for styling
-- [Framer Motion](https://framer.com/motion) for animations
-- [Lucide](https://lucide.dev/) for beautiful icons
+- [Next.js](https://nextjs.org/) for the amazing React framework
+- [Supabase](https://supabase.com/) for authentication and database
+- [Mapbox](https://www.mapbox.com/) for 3D mapping capabilities
+- [Tailwind CSS](https://tailwindcss.com/) for utility-first CSS
+- [Framer Motion](https://www.framer.com/motion/) for animations
+- [Stripe](https://stripe.com/) for payment processing
+- [OpenWeatherMap](https://openweathermap.org/) for weather data
+- [Google Cloud](https://cloud.google.com/) for translation services
+- [Spotify](https://developer.spotify.com/) for music integration
 
-## Support
+## 📞 Support
 
-If you encounter any issues or have questions:
-1. Check the [Issues](https://github.com/yourusername/trip-planner-3d/issues) page
-2. Create a new issue with detailed information
-3. Join our community discussions
+If you have any questions or need help, please open an issue on GitHub or contact the development team.
 
 ---
 
-Made with ❤️ for travelers and developers 
+**Happy Traveling! ✈️🌍** 

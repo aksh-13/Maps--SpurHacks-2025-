@@ -3,25 +3,25 @@ import { geminiService } from '@/services/ai/gemini'
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt } = await request.json()
+    const { message, conversationHistory = [] } = await request.json()
 
-    if (!prompt) {
+    if (!message) {
       return NextResponse.json(
-        { error: 'Prompt is required' },
+        { error: 'Message is required' },
         { status: 400 }
       )
     }
 
-    const tripPlan = await geminiService.generateTripPlan(prompt)
+    const response = await geminiService.sendMessage(message, conversationHistory)
 
     return NextResponse.json({
       success: true,
-      tripPlan: tripPlan,
+      response,
     })
   } catch (error) {
-    console.error('Error generating trip:', error)
+    console.error('Error in chat API:', error)
     return NextResponse.json(
-      { error: 'Failed to generate trip plan' },
+      { error: 'Failed to process message' },
       { status: 500 }
     )
   }

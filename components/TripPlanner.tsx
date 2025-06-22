@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Send, MapPin, Calendar, Users, DollarSign } from 'lucide-react'
+import { Send, MapPin, Calendar, Users, DollarSign, Info, Lightbulb } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { toast } from 'react-hot-toast'
 import TripMap from './TripMap'
 import AccommodationList from './AccommodationList'
 import ItineraryView from './ItineraryView'
@@ -14,76 +15,60 @@ interface TripPlan {
   activities: string[]
   itinerary: {
     day: number
+    title: string
     activities: string[]
     locations: { name: string; lat: number; lng: number }[]
   }[]
-  accommodations: any[]
+  accommodationSuggestions?: {
+    name: string
+    type: string
+    priceRange: string
+    bookingUrl: string
+  }[]
+  travelTips?: string[]
 }
 
 export default function TripPlanner({ onPlanningStart }: { onPlanningStart: () => void }) {
   const [prompt, setPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [tripPlan, setTripPlan] = useState<TripPlan | null>(null)
-  const [activeTab, setActiveTab] = useState<'map' | 'itinerary' | 'accommodations'>('map')
+  const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'map' | 'itinerary' | 'accommodations' | 'tips'>('map')
 
   const generateTrip = async () => {
     if (!prompt.trim()) return
 
     setIsGenerating(true)
+    setError(null)
     onPlanningStart()
 
     try {
-      // Simulate AI trip generation (replace with actual API call)
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      
-      const mockTripPlan: TripPlan = {
-        destination: 'Paris, France',
-        duration: '7 days',
-        budget: '$2,500',
-        activities: ['Visit Eiffel Tower', 'Louvre Museum', 'Seine River Cruise', 'Notre-Dame Cathedral'],
-        itinerary: [
-          {
-            day: 1,
-            activities: ['Arrive in Paris', 'Check into hotel', 'Eiffel Tower visit', 'Dinner at local bistro'],
-            locations: [
-              { name: 'Eiffel Tower', lat: 48.8584, lng: 2.2945 },
-              { name: 'Hotel', lat: 48.8566, lng: 2.3522 }
-            ]
-          },
-          {
-            day: 2,
-            activities: ['Louvre Museum', 'Walk along Champs-Élysées', 'Arc de Triomphe'],
-            locations: [
-              { name: 'Louvre Museum', lat: 48.8606, lng: 2.3376 },
-              { name: 'Arc de Triomphe', lat: 48.8738, lng: 2.2950 }
-            ]
-          }
-        ],
-        accommodations: [
-          {
-            id: 1,
-            name: 'Hotel Le Meurice',
-            type: 'Hotel',
-            price: '$350/night',
-            rating: 4.8,
-            image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400',
-            location: { lat: 48.8663, lng: 2.3295 }
-          },
-          {
-            id: 2,
-            name: 'Charming Paris Apartment',
-            type: 'Airbnb',
-            price: '$180/night',
-            rating: 4.9,
-            image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-            location: { lat: 48.8566, lng: 2.3522 }
-          }
-        ]
+      // Generate AI trip plan
+      const response = await fetch('/api/generate-trip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `API error: ${response.statusText}`)
       }
 
-      setTripPlan(mockTripPlan)
-    } catch (error) {
-      console.error('Error generating trip:', error)
+      const data = await response.json()
+      if (data.success && data.tripPlan) {
+        setTripPlan(data.tripPlan)
+        setActiveTab('itinerary')
+        toast.success('Trip plan generated successfully!')
+      } else {
+        throw new Error(data.error || 'Invalid response from trip generation API')
+      }
+    } catch (err: any) {
+      console.error('Error generating trip:', err)
+      setError(err.message || 'Failed to generate trip. Please try again.')
+      toast.error('Failed to generate trip plan')
     } finally {
       setIsGenerating(false)
     }
@@ -115,6 +100,12 @@ export default function TripPlanner({ onPlanningStart }: { onPlanningStart: () =
                 className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+
+            {error && (
+              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg text-center">
+                {error}
+              </div>
+            )}
 
             <div className="flex items-center justify-center space-x-4">
               <button
@@ -174,44 +165,76 @@ export default function TripPlanner({ onPlanningStart }: { onPlanningStart: () =
 
           {/* Navigation Tabs */}
           <div className="bg-white rounded-2xl shadow-xl p-6">
-            <div className="flex space-x-1 mb-6">
-              <button
-                onClick={() => setActiveTab('map')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'map'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:text-blue-600'
-                }`}
-              >
-                3D Map
-              </button>
+            <div className="flex space-x-1 mb-6 border-b">
               <button
                 onClick={() => setActiveTab('itinerary')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center space-x-2 px-4 py-2 transition-colors ${
                   activeTab === 'itinerary'
-                    ? 'bg-blue-600 text-white'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
                     : 'text-gray-600 hover:text-blue-600'
                 }`}
               >
-                Itinerary
+                <span>Itinerary</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('map')}
+                className={`flex items-center space-x-2 px-4 py-2 transition-colors ${
+                  activeTab === 'map'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-600 hover:text-blue-600'
+                }`}
+              >
+                <span>3D Map</span>
               </button>
               <button
                 onClick={() => setActiveTab('accommodations')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center space-x-2 px-4 py-2 transition-colors ${
                   activeTab === 'accommodations'
-                    ? 'bg-blue-600 text-white'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
                     : 'text-gray-600 hover:text-blue-600'
                 }`}
               >
-                Accommodations
+                <span>Accommodations</span>
               </button>
+              {tripPlan.travelTips && tripPlan.travelTips.length > 0 && (
+                <button
+                  onClick={() => setActiveTab('tips')}
+                  className={`flex items-center space-x-2 px-4 py-2 transition-colors ${
+                    activeTab === 'tips'
+                      ? 'border-b-2 border-blue-600 text-blue-600'
+                      : 'text-gray-600 hover:text-blue-600'
+                  }`}
+                >
+                  <span>Travel Tips</span>
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
             <div className="min-h-[600px]">
               {activeTab === 'map' && <TripMap tripPlan={tripPlan} />}
               {activeTab === 'itinerary' && <ItineraryView tripPlan={tripPlan} />}
-              {activeTab === 'accommodations' && <AccommodationList accommodations={tripPlan.accommodations} />}
+              {activeTab === 'accommodations' && (
+                <AccommodationList 
+                  location={tripPlan.destination}
+                  checkIn="2024-01-15"
+                  checkOut="2024-01-22"
+                  guests={2}
+                />
+              )}
+              {activeTab === 'tips' && tripPlan.travelTips && (
+                <div className="prose max-w-none">
+                  <h3 className="text-xl font-semibold mb-4">Travel Tips</h3>
+                  <ul className="space-y-2">
+                    {tripPlan.travelTips.map((tip, index) => (
+                      <li key={index} className="flex items-start space-x-3">
+                        <Lightbulb className="h-5 w-5 text-yellow-500 mt-1 flex-shrink-0" />
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
