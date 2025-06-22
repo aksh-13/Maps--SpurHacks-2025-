@@ -293,19 +293,31 @@ Return ONLY the JSON object, no additional text or explanations.`;
       
       console.log('Gemini API response received, length:', responseText.length);
       
+      // Clean the response text - remove markdown code blocks if present
+      let cleanedResponse = responseText.trim();
+      
+      // Remove markdown code blocks if present (```json ... ```)
+      if (cleanedResponse.startsWith('```json')) {
+        cleanedResponse = cleanedResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        console.log('Removed markdown code blocks from response');
+      } else if (cleanedResponse.startsWith('```')) {
+        cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        console.log('Removed markdown code blocks from response');
+      }
+      
       // Check if the response looks like valid JSON
-      if (!responseText.trim().startsWith('{')) {
-        console.warn('Gemini response is not valid JSON, using fallback:', responseText.substring(0, 100));
+      if (!cleanedResponse.startsWith('{')) {
+        console.warn('Gemini response is not valid JSON, using fallback:', cleanedResponse.substring(0, 100));
         return await this.getMockTripPlan(prompt)
       }
       
       try {
-        const tripPlan = JSON.parse(responseText);
+        const tripPlan = JSON.parse(cleanedResponse);
         console.log('Successfully parsed Gemini response as JSON');
         return tripPlan;
       } catch (jsonError) {
         console.error('Failed to parse Gemini response as JSON:', jsonError);
-        console.warn('Response text:', responseText.substring(0, 200));
+        console.warn('Response text:', cleanedResponse.substring(0, 200));
         return await this.getMockTripPlan(prompt)
       }
     } catch (error) {
