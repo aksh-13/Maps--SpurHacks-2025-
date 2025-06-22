@@ -1,46 +1,49 @@
 'use client'
 
-import { Plane, MapPin, Home } from 'lucide-react'
+import { Plane, MapPin, Home, Bookmark } from 'lucide-react'
 import { motion } from 'framer-motion'
+import Auth from './Auth'
 
-export default function Header() {
+interface HeaderProps {
+  onNavigateToMyTrips?: () => void
+}
+
+export default function Header({ onNavigateToMyTrips }: HeaderProps) {
   return (
-    <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+    <header className="glass sticky top-0 z-50 border-b border-surface-200/50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-3"
           >
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
+            <div className="bg-accent-600 p-2.5 rounded-xl shadow-soft">
               <Plane className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">TripPlanner 3D</span>
+            <span className="text-xl font-bold text-primary-900">TripPlanner 3D</span>
           </motion.div>
 
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#" className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors">
+            <a href="#" className="flex items-center space-x-2 text-primary-600 hover:text-accent-600 transition-colors font-medium">
               <Home className="h-4 w-4" />
               <span>Home</span>
             </a>
-            <a href="#" className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors">
+            <a href="#" className="flex items-center space-x-2 text-primary-600 hover:text-accent-600 transition-colors font-medium">
               <MapPin className="h-4 w-4" />
               <span>Destinations</span>
             </a>
-            <a href="#" className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors">
-              <Plane className="h-4 w-4" />
+            <button 
+              onClick={onNavigateToMyTrips}
+              className="flex items-center space-x-2 text-primary-600 hover:text-accent-600 transition-colors font-medium"
+            >
+              <Bookmark className="h-4 w-4" />
               <span>My Trips</span>
-            </a>
+            </button>
           </nav>
 
           <div className="flex items-center space-x-4">
-            <button className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">
-              Sign In
-            </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Get Started
-            </button>
+            <Auth />
           </div>
         </div>
       </div>
