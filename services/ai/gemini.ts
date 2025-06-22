@@ -302,9 +302,22 @@ Return ONLY the JSON object, no additional text or explanations.`;
       });
       
       const response = result.response;
-      const tripPlan = JSON.parse(response.text());
+      const responseText = response.text();
       
-      return tripPlan;
+      // Check if the response looks like valid JSON
+      if (!responseText.trim().startsWith('{')) {
+        console.warn('Gemini response is not valid JSON, using fallback:', responseText.substring(0, 100));
+        return await this.getMockTripPlan(prompt)
+      }
+      
+      try {
+        const tripPlan = JSON.parse(responseText);
+        return tripPlan;
+      } catch (jsonError) {
+        console.error('Failed to parse Gemini response as JSON:', jsonError);
+        console.warn('Response text:', responseText.substring(0, 200));
+        return await this.getMockTripPlan(prompt)
+      }
     } catch (error) {
       console.error('Error generating trip plan with Gemini:', error)
       return await this.getMockTripPlan(prompt)
