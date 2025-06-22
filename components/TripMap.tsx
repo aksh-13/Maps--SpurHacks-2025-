@@ -8,13 +8,69 @@ interface TripMapProps {
     destination: string
     itinerary: {
       day: number
-      locations: { name: string; lat: number; lng: number }[]
+      title: string
+      theme?: string
+      morning?: {
+        time: string
+        activity: string
+        location: { name: string; lat: number; lng: number; address?: string }
+        duration: string
+        cost: string
+        tips: string
+        bookingUrl?: string
+        bookingPlatform?: string
+      }
+      afternoon?: {
+        time: string
+        activity: string
+        location: { name: string; lat: number; lng: number; address?: string }
+        duration: string
+        cost: string
+        tips: string
+        bookingUrl?: string
+        bookingPlatform?: string
+      }
+      evening?: {
+        time: string
+        activity: string
+        location: { name: string; lat: number; lng: number; address?: string }
+        duration: string
+        cost: string
+        tips: string
+        bookingUrl?: string
+        bookingPlatform?: string
+      }
+      transportation?: Array<{
+        from: string
+        to: string
+        method: string
+        duration: string
+        cost: string
+        details: string
+        bookingUrl?: string
+      }>
+      dining?: Array<{
+        meal: string
+        restaurant: string
+        cuisine: string
+        priceRange: string
+        specialty: string
+        location: { name: string; lat: number; lng: number; address?: string }
+        bookingUrl?: string
+        bookingPlatform?: string
+      }>
+      highlights?: string[]
+      totalCost?: string
     }[]
     accommodations?: any[]
     accommodationSuggestions?: {
       name: string;
       type: string;
       priceRange: string;
+      location?: string;
+      amenities?: string[];
+      pros?: string[];
+      cons?: string[];
       bookingUrl: string;
     }[];
   }
@@ -71,7 +127,13 @@ export default function TripMap({ tripPlan }: TripMapProps) {
     if (!map.current || !mapLoaded) return
 
     // Add markers for all locations
-    const itineraryLocations = tripPlan.itinerary.flatMap(day => day.locations)
+    const itineraryLocations = tripPlan.itinerary.flatMap(day => {
+      const locations = []
+      if (day.morning) locations.push(day.morning.location)
+      if (day.afternoon) locations.push(day.afternoon.location)
+      if (day.evening) locations.push(day.evening.location)
+      return locations
+    })
     
     // Use accommodationSuggestions if available, otherwise use old accommodations field
     const accommodationLocations = (tripPlan.accommodationSuggestions || tripPlan.accommodations || []).map((acc: any) => ({
@@ -122,12 +184,24 @@ export default function TripMap({ tripPlan }: TripMapProps) {
               <div key={dayIndex}>
                 <p className="font-medium">Day {day.day}:</p>
                 <ul className="ml-4 space-y-1">
-                  {day.locations.map((location, locIndex) => (
-                    <li key={locIndex} className="flex items-center">
+                  {day.morning && (
+                    <li className="flex items-center">
                       <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      {location.name}
+                      {day.morning.location.name}
                     </li>
-                  ))}
+                  )}
+                  {day.afternoon && (
+                    <li className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      {day.afternoon.location.name}
+                    </li>
+                  )}
+                  {day.evening && (
+                    <li className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      {day.evening.location.name}
+                    </li>
+                  )}
                 </ul>
               </div>
             ))}

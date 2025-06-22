@@ -6,6 +6,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const action = searchParams.get('action')
 
+    console.log('Flights API: Request received with action:', action)
+
     if (action === 'search') {
       const origin = searchParams.get('origin')
       const destination = searchParams.get('destination')
@@ -15,13 +17,23 @@ export async function GET(request: NextRequest) {
       const cabinClass = searchParams.get('cabinClass') as 'economy' | 'premium_economy' | 'business' | 'first' || 'economy'
       const maxPrice = searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : undefined
 
+      console.log('Flights API: Search params:', {
+        origin,
+        destination,
+        departureDate,
+        passengers,
+        cabinClass
+      })
+
       if (!origin || !destination || !departureDate) {
+        console.log('Flights API: Missing required parameters')
         return NextResponse.json(
           { error: 'Origin, destination, and departureDate are required' },
           { status: 400 }
         )
       }
 
+      console.log('Flights API: Calling flight service...')
       const flights = await flightService.searchFlights({
         origin,
         destination,
@@ -32,6 +44,7 @@ export async function GET(request: NextRequest) {
         maxPrice
       })
 
+      console.log('Flights API: Flight service returned', flights.length, 'flights')
       return NextResponse.json(flights)
     }
 
@@ -48,6 +61,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(airports)
     }
 
+    console.log('Flights API: Invalid action parameter:', action)
     return NextResponse.json(
       { error: 'Invalid action parameter' },
       { status: 400 }

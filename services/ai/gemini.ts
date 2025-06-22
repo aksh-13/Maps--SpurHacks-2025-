@@ -93,44 +93,171 @@ export class GeminiService {
       },
     ];
 
-    const systemInstruction = `You are a travel planning expert for the TripPlanner 3D application. Your task is to generate a detailed, structured trip plan in JSON format based on a user's prompt.
+    const systemInstruction = `You are an expert travel planner for the TripPlanner 3D application. Create a comprehensive, detailed, and realistic trip plan based on the user's prompt.
 
 The user's prompt is: "${prompt}"
 
-Your response MUST be a valid JSON object with the following structure:
+IMPORTANT: You MUST generate the FULL number of days specified in the user's request. If they ask for 3 days, generate exactly 3 days of itinerary. If they ask for 7 days, generate exactly 7 days. Do not skip any days.
+
+Generate a detailed JSON response with the following structure:
 {
   "destination": "City, Country",
   "duration": "X days",
   "budget": "Approximately $Y",
+  "bestTimeToVisit": "Month - Month",
+  "weather": "Typical weather during visit",
+  "timezone": "UTC+X",
+  "language": "Primary language",
+  "currency": "Local currency",
   "activities": ["Activity 1", "Activity 2", "Activity 3"],
   "itinerary": [
     {
       "day": 1,
-      "title": "Arrival and Exploration",
-      "activities": ["Activity A", "Activity B", "Activity C"],
-      "locations": [
-        { "name": "Location Name 1", "lat": 48.8584, "lng": 2.2945 },
-        { "name": "Location Name 2", "lat": 48.8606, "lng": 2.3376 }
-      ]
+      "title": "Day Title",
+      "theme": "Cultural/Adventure/Relaxation",
+      "morning": {
+        "time": "09:00",
+        "activity": "Activity description",
+        "location": { "name": "Location Name", "lat": 48.8584, "lng": 2.2945, "address": "Full address" },
+        "duration": "2 hours",
+        "cost": "$15",
+        "tips": "Pro tip for this activity",
+        "bookingUrl": "https://www.viator.com/activity-url",
+        "bookingPlatform": "Viator/GetYourGuide/TripAdvisor"
+      },
+      "afternoon": {
+        "time": "14:00",
+        "activity": "Activity description",
+        "location": { "name": "Location Name", "lat": 48.8606, "lng": 2.3376, "address": "Full address" },
+        "duration": "3 hours",
+        "cost": "$25",
+        "tips": "Pro tip for this activity",
+        "bookingUrl": "https://www.getyourguide.com/activity-url",
+        "bookingPlatform": "Viator/GetYourGuide/TripAdvisor"
+      },
+      "evening": {
+        "time": "19:00",
+        "activity": "Activity description",
+        "location": { "name": "Location Name", "lat": 48.8580, "lng": 2.3450, "address": "Full address" },
+        "duration": "2 hours",
+        "cost": "$40",
+        "tips": "Pro tip for this activity",
+        "bookingUrl": "https://www.tripadvisor.com/activity-url",
+        "bookingPlatform": "Viator/GetYourGuide/TripAdvisor"
+      },
+      "transportation": [
+        {
+          "from": "Previous location",
+          "to": "Next location",
+          "method": "Metro/Bus/Walk/Taxi",
+          "duration": "15 minutes",
+          "cost": "$2.50",
+          "details": "Take Line 1 to Station X",
+          "bookingUrl": "https://transport-booking-url.com"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "Lunch",
+          "restaurant": "Restaurant Name",
+          "cuisine": "Local/International",
+          "priceRange": "$15-25",
+          "specialty": "Famous dish",
+          "location": { "name": "Restaurant Name", "lat": 48.8580, "lng": 2.3450, "address": "Full address" },
+          "bookingUrl": "https://www.opentable.com/restaurant-url",
+          "bookingPlatform": "OpenTable/Resy/Chope"
+        }
+      ],
+      "highlights": ["Highlight 1", "Highlight 2"],
+      "totalCost": "$80"
     }
   ],
   "accommodationSuggestions": [
     {
       "name": "Hotel Name",
-      "type": "Hotel",
+      "type": "Hotel/Hostel/Apartment",
       "priceRange": "$150 - $250 per night",
-      "bookingUrl": "http://example.com/hotel"
+      "location": "City Center/Downtown",
+      "amenities": ["WiFi", "Breakfast", "Gym"],
+      "pros": ["Great location", "Good value"],
+      "cons": ["Small rooms", "Noisy"],
+      "bookingUrl": "https://www.google.com/travel/hotels"
     }
   ],
-  "travelTips": ["Tip 1", "Tip 2"]
+  "transportation": {
+    "airport": "Airport name and code",
+    "fromAirport": "Transportation method and cost",
+    "localTransport": "Metro/Bus/Taxi information",
+    "recommendations": ["Get a travel pass", "Use ride-sharing apps"]
+  },
+  "dining": {
+    "localCuisine": "Famous local dishes",
+    "restaurantTypes": ["Fine dining", "Street food", "Cafes"],
+    "priceRanges": {
+      "budget": "$10-20 per meal",
+      "midRange": "$20-40 per meal",
+      "luxury": "$40+ per meal"
+    },
+    "recommendations": ["Try local specialty", "Book popular restaurants in advance"]
+  },
+  "culturalInsights": {
+    "customs": ["Custom 1", "Custom 2"],
+    "etiquette": ["Etiquette tip 1", "Etiquette tip 2"],
+    "language": {
+      "hello": "Local greeting",
+      "thankYou": "Local thank you",
+      "goodbye": "Local goodbye"
+    }
+  },
+  "travelTips": [
+    "Tip 1 with specific details",
+    "Tip 2 with specific details"
+  ],
+  "emergencyInfo": {
+    "police": "Emergency number",
+    "hospital": "Hospital information",
+    "embassy": "Embassy contact if applicable"
+  },
+  "packingList": {
+    "essentials": ["Item 1", "Item 2"],
+    "seasonal": ["Seasonal item 1", "Seasonal item 2"],
+    "optional": ["Optional item 1", "Optional item 2"]
+  }
 }
 
-Important instructions:
-- Do NOT include any text, notes, or explanations outside of the JSON object. Your entire response must be only the JSON.
-- Provide realistic latitude and longitude for each location.
-- The 'itinerary' array should cover the number of days mentioned in the 'duration'.
-- If the prompt is vague, make reasonable assumptions (e.g., a popular area in the requested city).
-- Ensure the JSON is well-formed and can be parsed directly.`;
+CRITICAL REQUIREMENTS:
+1. Generate the EXACT number of days specified in the user's request
+2. Each day MUST have morning, afternoon, and evening activities
+3. Do not skip any days - if user asks for 3 days, provide days 1, 2, and 3
+4. Each day should have a unique theme and focus on different areas/attractions
+5. Ensure logical flow between days (don't repeat the same activities)
+
+Important guidelines:
+- Provide REALISTIC coordinates for each location (use actual landmarks)
+- Include specific timing for activities (morning/afternoon/evening)
+- Add transportation details between locations
+- Include dining recommendations with local cuisine
+- Provide cultural insights and etiquette tips
+- Include emergency information and practical tips
+- Make the itinerary logistically feasible (reasonable travel times)
+- Include costs for activities and transportation
+- Add pro tips for each activity
+- Consider the destination's culture, weather, and local customs
+- Ensure activities are appropriate for the destination and season
+- Include both tourist attractions and local experiences
+- Provide alternative options for bad weather
+- Include free and paid activities for budget flexibility
+- Add REALISTIC booking URLs for each activity using popular platforms:
+  * Viator (https://www.viator.com) for tours and experiences
+  * GetYourGuide (https://www.getyourguide.com) for activities
+  * TripAdvisor (https://www.tripadvisor.com) for attractions
+  * OpenTable (https://www.opentable.com) for restaurant reservations
+  * Resy (https://resy.com) for fine dining
+  * Official attraction websites for museums, landmarks, etc.
+- For each activity, provide a bookingUrl that links to a real booking platform
+- Include bookingPlatform field to indicate which service the link uses
+
+Return ONLY the JSON object, no additional text or explanations.`;
 
     try {
       const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
@@ -158,32 +285,257 @@ Important instructions:
       destination: randomDestination,
       duration: '5 days',
       budget: '$2,000',
+      bestTimeToVisit: 'April - October',
+      weather: 'Mild temperatures, occasional rain',
+      timezone: 'UTC+1',
+      language: 'French',
+      currency: 'Euro (€)',
       activities: ['Sightseeing', 'Local Cuisine', 'Museums', 'Shopping'],
       itinerary: [
         {
           day: 1,
           title: 'Arrival & City Center',
-          activities: ['Arrive and check into hotel', 'Explore the city center', 'Welcome dinner'],
-          locations: [
-            { name: 'City Center', lat: 48.8566, lng: 2.3522 },
-            { name: 'Restaurant', lat: 48.8580, lng: 2.3450 },
+          theme: 'Cultural',
+          morning: {
+            time: '09:00',
+            activity: 'Arrive and check into hotel',
+            location: { name: 'Hotel Check-in', lat: 48.8566, lng: 2.3522, address: 'City Center, Paris' },
+            duration: '1 hour',
+            cost: '$0',
+            tips: 'Store luggage if room not ready',
+            bookingUrl: 'https://www.booking.com/hotel/fr/paris-center.html',
+            bookingPlatform: 'Booking.com'
+          },
+          afternoon: {
+            time: '14:00',
+            activity: 'Explore the city center and Eiffel Tower',
+            location: { name: 'Eiffel Tower', lat: 48.8584, lng: 2.2945, address: 'Champ de Mars, 5 Avenue Anatole France, 75007 Paris' },
+            duration: '3 hours',
+            cost: '$26',
+            tips: 'Book tickets online to avoid queues',
+            bookingUrl: 'https://www.viator.com/Paris-attractions/Eiffel-Tower/d479-a220',
+            bookingPlatform: 'Viator'
+          },
+          evening: {
+            time: '19:00',
+            activity: 'Welcome dinner at local bistro',
+            location: { name: 'Le Petit Bistrot', lat: 48.8580, lng: 2.3450, address: 'Rue de la Paix, 75001 Paris' },
+            duration: '2 hours',
+            cost: '$45',
+            tips: 'Try the coq au vin',
+            bookingUrl: 'https://www.opentable.com/r/le-petit-bistrot-paris',
+            bookingPlatform: 'OpenTable'
+          },
+          transportation: [
+            {
+              from: 'Airport',
+              to: 'Hotel',
+              method: 'Metro',
+              duration: '45 minutes',
+              cost: '$12',
+              details: 'Take RER B to Châtelet-Les Halles',
+              bookingUrl: 'https://www.ratp.fr/en/titres-et-tarifs'
+            }
           ],
+          dining: [
+            {
+              meal: 'Dinner',
+              restaurant: 'Le Petit Bistrot',
+              cuisine: 'French',
+              priceRange: '$35-55',
+              specialty: 'Coq au Vin',
+              location: { name: 'Le Petit Bistrot', lat: 48.8580, lng: 2.3450, address: 'Rue de la Paix, 75001 Paris' },
+              bookingUrl: 'https://www.opentable.com/r/le-petit-bistrot-paris',
+              bookingPlatform: 'OpenTable'
+            }
+          ],
+          highlights: ['Eiffel Tower views', 'Traditional French dinner'],
+          totalCost: '$83'
         },
         {
           day: 2,
-          title: 'Historical Landmarks',
-          activities: ['Visit famous landmarks', 'Guided historical tour'],
-          locations: [
-            { name: 'Landmark 1', lat: 48.8584, lng: 2.2945 },
-            { name: 'Landmark 2', lat: 48.8606, lng: 2.3376 },
+          title: 'Art & Culture',
+          theme: 'Cultural',
+          morning: {
+            time: '09:00',
+            activity: 'Visit Louvre Museum',
+            location: { name: 'Louvre Museum', lat: 48.8606, lng: 2.3376, address: 'Rue de Rivoli, 75001 Paris' },
+            duration: '3 hours',
+            cost: '$17',
+            tips: 'Enter through the Pyramid entrance',
+            bookingUrl: 'https://www.viator.com/Paris-attractions/Louvre-Museum/d479-a220',
+            bookingPlatform: 'Viator'
+          },
+          afternoon: {
+            time: '14:00',
+            activity: 'Walk through Tuileries Garden',
+            location: { name: 'Tuileries Garden', lat: 48.8636, lng: 2.3271, address: 'Place de la Concorde, 75001 Paris' },
+            duration: '1 hour',
+            cost: '$0',
+            tips: 'Perfect for photos',
+            bookingUrl: 'https://www.tripadvisor.com/Attraction_Review-g187147-d188151-Reviews-Jardin_des_Tuileries-Paris_Ile_de_France.html',
+            bookingPlatform: 'TripAdvisor'
+          },
+          evening: {
+            time: '19:00',
+            activity: 'Evening at Montmartre',
+            location: { name: 'Montmartre', lat: 48.8867, lng: 2.3431, address: 'Montmartre, 75018 Paris' },
+            duration: '2 hours',
+            cost: '$30',
+            tips: 'Visit Sacré-Cœur for sunset views',
+            bookingUrl: 'https://www.getyourguide.com/paris-l16/montmartre-guided-walking-tour-t38307/',
+            bookingPlatform: 'GetYourGuide'
+          },
+          transportation: [
+            {
+              from: 'Hotel',
+              to: 'Louvre',
+              method: 'Metro',
+              duration: '15 minutes',
+              cost: '$2.50',
+              details: 'Take Line 1 to Palais Royal-Musée du Louvre',
+              bookingUrl: 'https://www.ratp.fr/en/titres-et-tarifs'
+            }
           ],
+          dining: [
+            {
+              meal: 'Lunch',
+              restaurant: 'Café Marly',
+              cuisine: 'French',
+              priceRange: '$25-40',
+              specialty: 'Croque Monsieur',
+              location: { name: 'Café Marly', lat: 48.8606, lng: 2.3376, address: '93 Rue de Rivoli, 75001 Paris' },
+              bookingUrl: 'https://www.opentable.com/r/cafe-marly-paris',
+              bookingPlatform: 'OpenTable'
+            }
+          ],
+          highlights: ['Mona Lisa', 'Montmartre atmosphere'],
+          totalCost: '$74.50'
         },
+        {
+          day: 3,
+          title: 'Champs-Élysées & Shopping',
+          theme: 'Luxury & Shopping',
+          morning: {
+            time: '10:00',
+            activity: 'Arc de Triomphe and Champs-Élysées',
+            location: { name: 'Arc de Triomphe', lat: 48.8738, lng: 2.2950, address: 'Place Charles de Gaulle, 75008 Paris' },
+            duration: '2 hours',
+            cost: '$13',
+            tips: 'Climb to the top for panoramic views',
+            bookingUrl: 'https://www.viator.com/Paris-attractions/Arc-de-Triomphe/d479-a220',
+            bookingPlatform: 'Viator'
+          },
+          afternoon: {
+            time: '14:00',
+            activity: 'Shopping on Champs-Élysées',
+            location: { name: 'Champs-Élysées', lat: 48.8698, lng: 2.3077, address: 'Avenue des Champs-Élysées, 75008 Paris' },
+            duration: '3 hours',
+            cost: '$0',
+            tips: 'Visit flagship stores and boutiques',
+            bookingUrl: 'https://www.tripadvisor.com/Attraction_Review-g187147-d188151-Reviews-Champs_Elysees-Paris_Ile_de_France.html',
+            bookingPlatform: 'TripAdvisor'
+          },
+          evening: {
+            time: '19:00',
+            activity: 'Farewell dinner at fine dining restaurant',
+            location: { name: 'Le Jules Verne', lat: 48.8584, lng: 2.2945, address: 'Eiffel Tower, 75007 Paris' },
+            duration: '2.5 hours',
+            cost: '$120',
+            tips: 'Reserve well in advance for this exclusive experience',
+            bookingUrl: 'https://www.resy.com/cities/par/le-jules-verne',
+            bookingPlatform: 'Resy'
+          },
+          transportation: [
+            {
+              from: 'Hotel',
+              to: 'Arc de Triomphe',
+              method: 'Metro',
+              duration: '20 minutes',
+              cost: '$2.50',
+              details: 'Take Line 1 to Charles de Gaulle - Étoile',
+              bookingUrl: 'https://www.ratp.fr/en/titres-et-tarifs'
+            }
+          ],
+          dining: [
+            {
+              meal: 'Dinner',
+              restaurant: 'Le Jules Verne',
+              cuisine: 'French Fine Dining',
+              priceRange: '$100-150',
+              specialty: 'Tasting Menu',
+              location: { name: 'Le Jules Verne', lat: 48.8584, lng: 2.2945, address: 'Eiffel Tower, 75007 Paris' },
+              bookingUrl: 'https://www.resy.com/cities/par/le-jules-verne',
+              bookingPlatform: 'Resy'
+            }
+          ],
+          highlights: ['Arc de Triomphe views', 'Luxury shopping', 'Fine dining experience'],
+          totalCost: '$135.50'
+        }
       ],
       accommodationSuggestions: [
-        { name: 'Grand Hotel', type: 'Hotel', priceRange: '$200 - $300', bookingUrl: '#' },
-        { name: 'City Apartments', type: 'Apartment', priceRange: '$120 - $180', bookingUrl: '#' },
+        {
+          name: 'Grand Hotel Paris',
+          type: 'Hotel',
+          priceRange: '$200 - $300 per night',
+          location: 'City Center',
+          amenities: ['WiFi', 'Breakfast', 'Gym', 'Spa'],
+          pros: ['Great location', 'Luxury amenities'],
+          cons: ['Expensive', 'Small rooms'],
+          bookingUrl: 'https://www.google.com/travel/hotels'
+        },
+        {
+          name: 'Boutique Paris Suites',
+          type: 'Hotel',
+          priceRange: '$150 - $250 per night',
+          location: 'Marais District',
+          amenities: ['WiFi', 'Kitchen', 'Balcony'],
+          pros: ['Charming atmosphere', 'Good value'],
+          cons: ['No elevator', 'Limited amenities'],
+          bookingUrl: 'https://www.google.com/travel/hotels'
+        }
       ],
-      travelTips: ['Use public transport to save money.', 'Try the local street food.'],
+      transportation: {
+        airport: 'Charles de Gaulle Airport (CDG)',
+        fromAirport: 'RER B train, $12, 45 minutes',
+        localTransport: 'Metro system, $2.50 per trip, 24-hour passes available',
+        recommendations: ['Get a Paris Visite pass', 'Use Velib bike sharing']
+      },
+      dining: {
+        localCuisine: 'Croissants, Coq au Vin, Escargots, French Onion Soup',
+        restaurantTypes: ['Bistros', 'Brasseries', 'Fine dining', 'Street food'],
+        priceRanges: {
+          budget: '$15-25 per meal',
+          midRange: '$25-50 per meal',
+          luxury: '$50+ per meal'
+        },
+        recommendations: ['Try local pastries', 'Book popular restaurants in advance']
+      },
+      culturalInsights: {
+        customs: ['Greet with "Bonjour"', 'Tipping is appreciated but not mandatory'],
+        etiquette: ['Dress well when dining out', 'Learn basic French phrases'],
+        language: {
+          hello: 'Bonjour',
+          thankYou: 'Merci',
+          goodbye: 'Au revoir'
+        }
+      },
+      travelTips: [
+        'Book museum tickets online to avoid long queues',
+        'Use the Metro for efficient transportation around the city',
+        'Try local pastries and coffee at neighborhood cafes',
+        'Learn basic French phrases for better interactions'
+      ],
+      emergencyInfo: {
+        police: '17',
+        hospital: 'Hôpital Hôtel-Dieu, +33 1 42 34 82 34',
+        embassy: 'US Embassy: +33 1 43 12 22 22'
+      },
+      packingList: {
+        essentials: ['Comfortable walking shoes', 'Travel adapter', 'Camera'],
+        seasonal: ['Light jacket (spring/fall)', 'Sunglasses', 'Umbrella'],
+        optional: ['Dress clothes for fine dining', 'Guidebook', 'Portable charger']
+      }
     }
   }
 
