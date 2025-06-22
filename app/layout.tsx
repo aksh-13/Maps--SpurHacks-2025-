@@ -6,7 +6,7 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'TripPlanner 3D - AI-Powered Travel Planning',
+  title: 'Travana - AI-Powered Travel Planning',
   description: 'Plan your perfect trip with AI assistance, 3D maps, and accommodation recommendations',
 }
 

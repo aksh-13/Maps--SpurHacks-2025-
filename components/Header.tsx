@@ -21,7 +21,7 @@ export default function Header({ onNavigateToMyTrips }: HeaderProps) {
             <div className="bg-accent-600 p-2.5 rounded-xl shadow-soft">
               <Plane className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-primary-900">TripPlanner 3D</span>
+            <span className="text-xl font-bold text-primary-900">Travana</span>
           </motion.div>
 
           <nav className="hidden md:flex items-center space-x-8">

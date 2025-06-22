@@ -97,7 +97,7 @@ export class GeminiService {
       },
     ];
 
-    const systemInstruction = `You are an expert travel planner for the TripPlanner 3D application. Create a comprehensive, detailed, and realistic trip plan based on the user's prompt.
+    const systemInstruction = `You are an expert travel planner for the Travana application. Create a comprehensive, detailed, and realistic trip plan based on the user's prompt.
 
 The user's prompt is: "${correctedPrompt}"
 
