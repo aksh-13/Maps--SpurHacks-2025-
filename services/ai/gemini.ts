@@ -284,10 +284,14 @@ Return ONLY the JSON object, no additional text or explanations.`;
 
     try {
       const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+      
+      // Use the simplest possible API call format
       const result = await model.generateContent(systemInstruction);
       
       const response = result.response;
       const responseText = response.text();
+      
+      console.log('Gemini API response received, length:', responseText.length);
       
       // Check if the response looks like valid JSON
       if (!responseText.trim().startsWith('{')) {
@@ -297,6 +301,7 @@ Return ONLY the JSON object, no additional text or explanations.`;
       
       try {
         const tripPlan = JSON.parse(responseText);
+        console.log('Successfully parsed Gemini response as JSON');
         return tripPlan;
       } catch (jsonError) {
         console.error('Failed to parse Gemini response as JSON:', jsonError);
@@ -305,6 +310,7 @@ Return ONLY the JSON object, no additional text or explanations.`;
       }
     } catch (error) {
       console.error('Error generating trip plan with Gemini:', error)
+      
       // Log the full error for debugging
       if (error instanceof Error) {
         console.error('Error details:', error.message);
@@ -315,6 +321,9 @@ Return ONLY the JSON object, no additional text or explanations.`;
           console.warn('API returned non-JSON response, using fallback');
         }
       }
+      
+      // Always return a fallback trip plan instead of throwing
+      console.log('Using fallback trip plan due to API error');
       return await this.getMockTripPlan(prompt)
     }
   }

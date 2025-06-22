@@ -12,7 +12,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('Generating trip plan for prompt:', prompt)
+    
     const tripPlan = await geminiService.generateTripPlan(prompt)
+    
+    console.log('Trip plan generated successfully')
 
     return NextResponse.json({
       success: true,
@@ -20,9 +24,22 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error generating trip:', error)
-    // Always return a JSON response
+    
+    // Ensure we always return a proper JSON response
+    let errorMessage = 'Failed to generate trip plan'
+    
+    if (error instanceof Error) {
+      errorMessage = error.message
+      console.error('Error details:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+    
     return NextResponse.json(
-      { success: false, error: 'Failed to generate trip plan' },
+      { 
+        success: false, 
+        error: errorMessage,
+        tripPlan: null
+      },
       { status: 500 }
     )
   }
