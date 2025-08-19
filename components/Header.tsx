@@ -1,14 +1,15 @@
 'use client'
 
-import { Plane, MapPin, Home, Bookmark } from 'lucide-react'
+import { Plane, MapPin, Home, Bookmark, Calendar } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Auth from './Auth'
 
 interface HeaderProps {
   onNavigateToMyTrips?: () => void
+  onNavigateToEvents?: () => void
 }
 
-export default function Header({ onNavigateToMyTrips }: HeaderProps) {
+export default function Header({ onNavigateToMyTrips, onNavigateToEvents }: HeaderProps) {
   return (
     <header className="glass sticky top-0 z-50 border-b border-surface-200/50">
       <div className="container mx-auto px-4 py-4">
@@ -35,6 +36,13 @@ export default function Header({ onNavigateToMyTrips }: HeaderProps) {
             >
               <Bookmark className="h-4 w-4" />
               <span>My Trips</span>
+            </button>
+            <button 
+              onClick={onNavigateToEvents}
+              className="flex items-center space-x-2 text-primary-600 hover:text-accent-600 transition-colors font-medium"
+            >
+              <Calendar className="h-4 w-4" />
+              <span>Live Events</span>
             </button>
           </nav>
 

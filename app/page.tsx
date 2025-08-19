@@ -5,21 +5,53 @@ import TripPlanner from '@/components/TripPlanner'
 import ServicesIntegration from '@/components/ServicesIntegration'
 import MyTrips from '@/components/MyTrips'
 import Header from '@/components/Header'
+import LiveEvents from '@/components/LiveEvents'
+import EventDetailsModal from '@/components/EventDetailsModal'
 import { motion } from 'framer-motion'
+
+interface Event {
+  id: string
+  name: string
+  description: string
+  startDate: string
+  endDate: string
+  venue: {
+    name: string
+    address: string
+    latitude?: number
+    longitude?: number
+  }
+  category: string
+  price: string
+  url?: string
+  image?: string
+}
 
 export default function Home() {
   const [isPlanning, setIsPlanning] = useState(false)
   const [showServices, setShowServices] = useState(false)
   const [showMyTrips, setShowMyTrips] = useState(false)
+  const [showEvents, setShowEvents] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false)
 
   const resetView = () => {
     setShowServices(false)
     setShowMyTrips(false)
+    setShowEvents(false)
+  }
+
+  const handleEventSelect = (event: Event) => {
+    setSelectedEvent(event)
+    setIsEventModalOpen(true)
   }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-surface-50 via-white to-accent-50/30">
-      <Header onNavigateToMyTrips={() => setShowMyTrips(true)} />
+      <Header 
+        onNavigateToMyTrips={() => setShowMyTrips(true)}
+        onNavigateToEvents={() => setShowEvents(true)}
+      />
       
       <div className="container mx-auto px-4 py-12">
         <motion.div
@@ -37,7 +69,7 @@ export default function Home() {
           </p>
         </motion.div>
 
-        {!showServices && !showMyTrips ? (
+        {!showServices && !showMyTrips && !showEvents ? (
           <div className="space-y-12">
             <TripPlanner onPlanningStart={() => setIsPlanning(true)} />
             
@@ -55,6 +87,12 @@ export default function Home() {
                   My Trips
                 </button>
                 <button
+                  onClick={() => setShowEvents(true)}
+                  className="btn-secondary"
+                >
+                  Live Events
+                </button>
+                <button
                   onClick={() => setShowServices(true)}
                   className="btn-secondary"
                 >
@@ -62,6 +100,23 @@ export default function Home() {
                 </button>
               </div>
             </motion.div>
+          </div>
+        ) : showEvents ? (
+          <div className="space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center"
+            >
+              <button
+                onClick={resetView}
+                className="btn-secondary mb-8"
+              >
+                ← Back to Trip Planner
+              </button>
+            </motion.div>
+            
+            <LiveEvents onEventSelect={handleEventSelect} />
           </div>
         ) : showMyTrips ? (
           <div className="space-y-8">
@@ -99,6 +154,12 @@ export default function Home() {
           </div>
         )}
       </div>
+      
+      <EventDetailsModal
+        event={selectedEvent}
+        isOpen={isEventModalOpen}
+        onClose={() => setIsEventModalOpen(false)}
+      />
     </main>
   )
 } 
