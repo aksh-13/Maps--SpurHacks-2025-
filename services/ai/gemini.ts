@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
+import { googlePlacesService } from '../places/googlePlaces'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
@@ -61,6 +62,10 @@ export class GeminiService {
     const correctedPrompt = await this.autocorrectUserInput(prompt)
     console.log('Original prompt:', prompt)
     console.log('Corrected prompt:', correctedPrompt)
+
+    // Extract destination from prompt and fetch real places
+    const destination = this.extractDestination(correctedPrompt)
+    const realPlaces = await this.fetchRealPlacesData(destination)
 
     const generationConfig = {
       temperature: 0.7,
@@ -870,6 +875,59 @@ Please return ONLY the corrected version of their input, maintaining their origi
     } catch (error) {
       console.error('Error autocorrecting user input:', error)
       return userInput // Return original if correction fails
+    }
+  }
+
+  private extractDestination(prompt: string): string {
+    // Simple extraction - look for common patterns
+    const lowerPrompt = prompt.toLowerCase()
+    
+    // Try to find city/country patterns
+    const patterns = [
+      /(?:to|in|visit|trip to|plan.*?to)\s+([a-z\s,]+?)(?:\s|$|for|during|with)/i,
+      /([a-z\s,]+?)\s+(?:trip|vacation|travel|itinerary)/i,
+      /^([a-z\s,]+?)(?:\s+for|\s+in|\s+during)/i
+    ]
+    
+    for (const pattern of patterns) {
+      const match = prompt.match(pattern)
+      if (match && match[1]) {
+        return match[1].trim()
+      }
+    }
+    
+    // Fallback - return first few words if no pattern matches
+    const words = prompt.split(' ').slice(0, 3).join(' ')
+    return words || 'Paris' // Default fallback
+  }
+
+  private async fetchRealPlacesData(destination: string): Promise<{
+    attractions: any[]
+    restaurants: any[]
+    hotels: any[]
+  }> {
+    if (!googlePlacesService.isAvailable()) {
+      console.warn('Google Places API not available, using fallback')
+      return { attractions: [], restaurants: [], hotels: [] }
+    }
+
+    try {
+      const [attractions, restaurants, hotels] = await Promise.all([
+        googlePlacesService.searchAttractions(destination, 15),
+        googlePlacesService.searchRestaurants(destination, 10),
+        googlePlacesService.searchHotels(destination, 8)
+      ])
+
+      console.log(`Fetched real places for ${destination}:`, {
+        attractions: attractions.length,
+        restaurants: restaurants.length,
+        hotels: hotels.length
+      })
+
+      return { attractions, restaurants, hotels }
+    } catch (error) {
+      console.error('Error fetching real places:', error)
+      return { attractions: [], restaurants: [], hotels: [] }
     }
   }
 }
